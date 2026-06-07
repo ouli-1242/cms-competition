@@ -1,0 +1,79 @@
+// ===== 设计系统：颜色 / 字体 / 间距 / 阴影 / 圆角 =====
+
+// 主色 - 科技蓝
+$primary: #2b6cb0;
+$primary-hover: #2c5282;
+$primary-light: #ebf4fb;
+$primary-50: #f0f7ff;
+$primary-100: #d6e8ff;
+
+// 状态色
+$success: #48bb78;
+$success-bg: #f0faf4;
+$success-light: #c6f6d5;
+$warning: #f6ad55;
+$warning-bg: #fff5e6;
+$danger: #e53e3e;
+$danger-bg: #fef5f5;
+$info: #4299e1;
+$info-bg: #eaf2fb;
+
+// 中性色
+$text-primary: #1a202c;
+$text-regular: #2d3748;
+$text-secondary: #4a5568;
+$text-placeholder: #a0aec0;
+$text-disabled: #cbd5e0;
+
+$border-base: #e2e8f0;
+$border-light: #edf2f7;
+$bg-page: #f5f7fa;
+$bg-card: #ffffff;
+$bg-disabled: #f7fafc;
+
+// 间距（4 的倍数）
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-8: 32px;
+$space-10: 40px;
+$space-12: 48px;
+$space-16: 64px;
+
+// 圆角
+$radius-sm: 4px;
+$radius-base: 6px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-full: 9999px;
+
+// 阴影
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+$shadow-base: 0 2px 8px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+$shadow-card: 0 4px 20px rgba(43, 108, 176, 0.08);
+
+// 字体
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-md: 15px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+$font-size-2xl: 20px;
+$font-size-3xl: 24px;
+$font-size-4xl: 30px;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// 动画
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);

@@ -1,0 +1,119 @@
+@use './variables.scss' as *;
+
+// ===== 全局重置 =====
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: $primary;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $primary-hover;
+  }
+}
+
+button {
+  font-family: inherit;
+}
+
+// ===== 滚动条 =====
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-page;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $border-base;
+  border-radius: $radius-full;
+
+  &:hover {
+    background: $text-placeholder;
+  }
+}
+
+// ===== 工具类 =====
+
+.text-primary {
+  color: $primary;
+}
+.text-success {
+  color: $success;
+}
+.text-warning {
+  color: $warning;
+}
+.text-danger {
+  color: $danger;
+}
+.text-secondary {
+  color: $text-secondary;
+}
+
+.bg-card {
+  background: $bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-base;
+}
+
+.flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// ===== 动画 =====
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn $transition-base both;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.shake {
+  animation: shake 0.4s;
+}
