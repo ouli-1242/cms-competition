@@ -29,16 +29,16 @@ public class StatisticsServiceImpl implements StatisticsService {
             w2.inSql(TeamRegistration::getCompetitionId,
                 "SELECT id FROM competition WHERE teacher_id = " + teacherId);
         }
-        int indivTotal = registrationMapper.selectCount(w1);
-        int teamTotal = teamRegistrationMapper.selectCount(w2);
-        vo.setIndividualCount(indivTotal);
-        vo.setTeamCount(teamTotal);
-        vo.setTotalCount(indivTotal + teamTotal);
+        long indivTotal = registrationMapper.selectCount(w1);
+        long teamTotal = teamRegistrationMapper.selectCount(w2);
+        vo.setIndividualCount((int) (long) indivTotal);
+        vo.setTeamCount((int) (long) teamTotal);
+        vo.setTotalCount((int) (indivTotal + teamTotal));
 
         LambdaQueryWrapper<Registration> w1p = w1.clone().eq(Registration::getStatus, 1);
         LambdaQueryWrapper<TeamRegistration> w2p = w2.clone().eq(TeamRegistration::getStatus, 1);
-        int passed = registrationMapper.selectCount(w1p) + teamRegistrationMapper.selectCount(w2p);
-        vo.setPassedCount(passed);
+        long passed = registrationMapper.selectCount(w1p) + teamRegistrationMapper.selectCount(w2p);
+        vo.setPassedCount((int) passed);
         vo.setPassRate(vo.getTotalCount() == 0 ? 0.0 : passed * 100.0 / vo.getTotalCount());
         return vo;
     }
@@ -47,18 +47,18 @@ public class StatisticsServiceImpl implements StatisticsService {
     public StatisticsVO competitionStat(Long competitionId) {
         StatisticsVO vo = new StatisticsVO();
         vo.setCompetitionCount(1L);
-        int indiv = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
+        long indiv = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
             .eq(Registration::getCompetitionId, competitionId));
-        int team = teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
+        long team = teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
             .eq(TeamRegistration::getCompetitionId, competitionId));
-        vo.setIndividualCount(indiv);
-        vo.setTeamCount(team);
-        vo.setTotalCount(indiv + team);
-        int passed = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
+        vo.setIndividualCount((int) indiv);
+        vo.setTeamCount((int) team);
+        vo.setTotalCount((int) (indiv + team));
+        long passed = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                 .eq(Registration::getCompetitionId, competitionId).eq(Registration::getStatus, 1))
             + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
                 .eq(TeamRegistration::getCompetitionId, competitionId).eq(TeamRegistration::getStatus, 1));
-        vo.setPassedCount(passed);
+        vo.setPassedCount((int) passed);
         vo.setPassRate(vo.getTotalCount() == 0 ? 0.0 : passed * 100.0 / vo.getTotalCount());
         return vo;
     }

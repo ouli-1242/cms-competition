@@ -1,6 +1,7 @@
 package com.cms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cms.common.exception.BusinessException;
 import com.cms.dto.TeamDTO;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -54,7 +56,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         m.setUserId(captainId);
         m.setRole(1);
         m.setStatus(1);
-        m.setJoinTime(new Date());
+        m.setJoinTime(LocalDateTime.now());
         teamMemberMapper.insert(m);
 
         return team;
@@ -85,7 +87,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         m.setUserId(userId);
         m.setRole(0);
         m.setStatus(1);  // 直接通过，简化流程
-        m.setJoinTime(new Date());
+        m.setJoinTime(LocalDateTime.now());
         teamMemberMapper.insert(m);
 
         // 通知队长
@@ -137,12 +139,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
 
         // 旧队长 -> 队员
         teamMemberMapper.update(new TeamMember(),
-            new com.baomidou.mybatisplus.core.update.UpdateWrapper<TeamMember>()
+            new UpdateWrapper<TeamMember>()
                 .eq("team_id", teamId).eq("user_id", oldCaptainId)
                 .set("role", 0));
         // 新队长 -> 队长
         teamMemberMapper.update(new TeamMember(),
-            new com.baomidou.mybatisplus.core.update.UpdateWrapper<TeamMember>()
+            new UpdateWrapper<TeamMember>()
                 .eq("team_id", teamId).eq("user_id", newCaptainId)
                 .set("role", 1));
 
@@ -179,7 +181,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         reg.setStatus(0);
         reg.setDescription(description);
         reg.setAttachment(attachment);
-        reg.setRegisterTime(new Date());
+        reg.setRegisterTime(LocalDateTime.now());
         teamRegistrationMapper.insert(reg);
 
         team.setStatus(1);
