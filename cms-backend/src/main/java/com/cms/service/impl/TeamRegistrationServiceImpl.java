@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Service
 public class TeamRegistrationServiceImpl extends ServiceImpl<TeamRegistrationMapper, TeamRegistration> implements TeamRegistrationService {
@@ -29,7 +29,7 @@ public class TeamRegistrationServiceImpl extends ServiceImpl<TeamRegistrationMap
         reg.setStatus(pass ? 1 : 2);
         reg.setReviewerId(reviewerId);
         reg.setReviewRemark(remark);
-        reg.setReviewTime(new Date());
+        reg.setReviewTime(LocalDateTime.now());
         this.updateById(reg);
 
         Team team = teamMapper.selectById(reg.getTeamId());

@@ -11,7 +11,7 @@ public class Result<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer code;
-    private String  msg;
+    private String  message;
     private T       data;
 
     public static <T> Result<T> success() {
@@ -21,19 +21,19 @@ public class Result<T> implements Serializable {
     public static <T> Result<T> success(T data) {
         Result<T> r = new Result<>();
         r.setCode(200);
-        r.setMsg("ok");
+        r.setMessage("ok");
         r.setData(data);
         return r;
     }
 
-    public static <T> Result<T> error(String msg) {
-        return error(500, msg);
+    public static <T> Result<T> error(String message) {
+        return error(500, message);
     }
 
-    public static <T> Result<T> error(Integer code, String msg) {
+    public static <T> Result<T> error(Integer code, String message) {
         Result<T> r = new Result<>();
         r.setCode(code);
-        r.setMsg(msg);
+        r.setMessage(message);
         return r;
     }
 }

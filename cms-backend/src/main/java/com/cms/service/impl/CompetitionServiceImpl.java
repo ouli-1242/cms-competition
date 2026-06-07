@@ -41,7 +41,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
         Competition old = this.getById(id);
         if (old == null) throw new BusinessException("竞赛不存在");
 
-        int regCount = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
+        long regCount = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                 .eq(Registration::getCompetitionId, id))
             + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
                 .eq(TeamRegistration::getCompetitionId, id));
@@ -76,7 +76,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
     public void deleteCompetition(Long id) {
         Competition c = this.getById(id);
         if (c == null) throw new BusinessException("竞赛不存在");
-        int count = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
+        long count = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                 .eq(Registration::getCompetitionId, id))
             + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
                 .eq(TeamRegistration::getCompetitionId, id));

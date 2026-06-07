@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -52,7 +51,7 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
         r.setStatus(0);
         r.setDescription(description);
         r.setAttachment(attachment);
-        r.setRegisterTime(new Date());
+        r.setRegisterTime(LocalDateTime.now());
         this.save(r);
 
         // 异步通知管理员
@@ -68,7 +67,7 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
         r.setStatus(pass ? 1 : 2);
         r.setReviewerId(reviewerId);
         r.setReviewRemark(remark);
-        r.setReviewTime(new Date());
+        r.setReviewTime(LocalDateTime.now());
         this.updateById(r);
 
         notificationService.asyncNotify(r.getUserId(),

@@ -60,15 +60,15 @@ public class HotRecommendServiceImpl implements HotRecommendService {
             .eq(Competition::getStatus, 1)
             .eq(Competition::getIsDeleted, 0));
         comps.sort((a, b) -> {
-            int ca = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
+            long ca = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                     .eq(Registration::getCompetitionId, a.getId()))
                 + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
                     .eq(TeamRegistration::getCompetitionId, a.getId()));
-            int cb = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
+            long cb = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                     .eq(Registration::getCompetitionId, b.getId()))
                 + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
                     .eq(TeamRegistration::getCompetitionId, b.getId()));
-            return cb - ca;
+            return Long.compare(cb, ca);
         });
         for (int i = 0; i < Math.min(topN, comps.size()); i++) {
             HotRecommend h = new HotRecommend();
