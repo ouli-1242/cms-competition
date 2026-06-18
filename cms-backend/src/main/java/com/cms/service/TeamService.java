@@ -4,14 +4,19 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.cms.dto.TeamDTO;
 import com.cms.entity.Team;
 
+import java.util.List;
 import java.util.Map;
 
 public interface TeamService extends IService<Team> {
     Team createTeam(TeamDTO dto, Long captainId);
     void joinTeam(String inviteCode, Long userId);
-    Map<String, Object> getMyTeam(Long userId);
-    void reviewMember(Long memberId, Boolean pass);
+    List<Map<String, Object>> getMyTeam(Long userId);
+    Map<String, Object> getTeamDetail(Long teamId);
+    void quitTeam(Long teamId, Long userId);
+    void reviewMember(Long memberId, Boolean pass, Long callerId);
     void kickMember(Long teamId, Long userId, Long operatorId);
     void transferCaptain(Long teamId, Long newCaptainId, Long oldCaptainId);
-    void submitTeamRegistration(Long teamId, String description, String attachment);
+    void submitTeamRegistration(Long teamId, String description, String attachment, Long callerId);
+    void dissolveTeam(Long teamId, Long userId);
+    void recoverTeam(Long teamId, Long userId);
 }

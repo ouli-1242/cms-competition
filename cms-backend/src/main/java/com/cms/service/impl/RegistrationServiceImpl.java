@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cms.common.exception.BusinessException;
 import com.cms.entity.Competition;
 import com.cms.entity.Registration;
+import com.cms.entity.User;
 import com.cms.mapper.CompetitionMapper;
 import com.cms.mapper.RegistrationMapper;
+import com.cms.mapper.UserMapper;
 import com.cms.service.NotificationService;
 import com.cms.service.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Registration> implements RegistrationService {
 
     @Autowired
     private CompetitionMapper competitionMapper;
+    @Autowired
+    private UserMapper userMapper;
     @Autowired
     private NotificationService notificationService;
 
@@ -60,6 +65,15 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
     }
 
     @Override
+    public void cancelRegistration(Long id, Long userId) {
+        Registration r = this.getById(id);
+        if (r == null) throw new BusinessException("记录不存在");
+        if (!r.getUserId().equals(userId)) throw new BusinessException("只能取消自己的报名");
+        if (r.getStatus() != 0) throw new BusinessException("已通过/拒绝的报名不能取消");
+        this.removeById(id);
+    }
+
+    @Override
     @Transactional
     public void review(Long id, Boolean pass, String remark, Long reviewerId) {
         Registration r = this.getById(id);
@@ -80,9 +94,11 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
         if (competitionId != null) wrapper.eq(Registration::getCompetitionId, competitionId);
         if (status != null) wrapper.eq(Registration::getStatus, status);
         if (studentName != null && !studentName.isEmpty()) {
-            // 简化：直接通过 userId in 子查询
-            wrapper.inSql(Registration::getUserId,
-                "SELECT id FROM user WHERE real_name LIKE '%" + studentName + "%'");
+            LambdaQueryWrapper<User> userQuery = new LambdaQueryWrapper<>();
+            userQuery.like(User::getRealName, studentName).select(User::getId);
+            List<Long> userIds = userMapper.selectList(userQuery).stream().map(User::getId).collect(Collectors.toList());
+            if (userIds.isEmpty()) userIds.add(-1L); // no match
+            wrapper.in(Registration::getUserId, userIds);
         }
         wrapper.orderByDesc(Registration::getRegisterTime);
         return this.list(wrapper);

@@ -1,76 +1,130 @@
 <script setup lang="ts">
 /**
  * 报名记录页
- * - 复用个人中心 Tab 风格
- * - 表格展示：竞赛名称 / 类型 / 报名时间 / 状态 / 操作
+ * - 表格展示：竞赛 / 报名时间 / 状态 / 操作
  * - 分页
+ * - 取消报名
  */
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { getUserInfo } from '@/api/auth'
-import { getMyRegistrations, cancelRegistration } from '@/api/registration'
+import { getMyRegistrations, cancelRegistration, getMyTeamRegistrations } from '@/api/registration'
+import { getCompetitionDetail } from '@/api/public'
 
 const router = useRouter()
 
-// ====== 用户信息 ======
-const userInfo = ref({
-  realName: '张明远',
-  college: '计算机科学与技术学院',
-  username: '2024001234',
-  avatar: ''
-})
+// ====== Tab 切换 ======
+const activeTab = ref<'individual' | 'team'>('individual')
 
-// ====== 数据 ======
+// ====== 个人报名数据 ======
 const list = ref<any[]>([])
-const total = ref(30)
+const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(5)
+const pageSize = ref(10)
 const loading = ref(false)
+
+// ====== 团队报名数据 ======
+const teamList = ref<any[]>([])
+const teamLoading = ref(false)
+const teamTotal = ref(0)
+const teamPage = ref(1)
+const teamPageSize = ref(10)
 
 // ====== 取消报名弹窗 ======
 const cancelDialogVisible = ref(false)
 const cancelTarget = ref<any>(null)
 
-// ====== 占位数据 ======
-const placeholder: any[] = [
-  { id: 1, title: '2026年校园科技创新大赛', type: '学科竞赛', typeColor: 'blue', regTime: '2025-03-10 14:30', status: '审核通过', statusColor: 'success' },
-  { id: 2, title: 'ACM校级设计挑战赛', type: '学科竞赛', typeColor: 'blue', regTime: '2025-03-05 12:35', status: '审核通过', statusColor: 'success' },
-  { id: 3, title: '"青年之声"校园演讲比赛', type: '文艺活动', typeColor: 'orange', regTime: '2025-03-10 20:45', status: '已通过', statusColor: 'success' },
-  { id: 4, title: '校园摄影大赛', type: '文艺活动', typeColor: 'orange', regTime: '2025-03-20 15:20', status: '待提交', statusColor: 'info' },
-  { id: 5, title: '数字建模竞赛', type: '学科竞赛', typeColor: 'blue', regTime: '2025-03-10 09:00', status: '审核中', statusColor: 'warning' }
-]
-
-async function loadUser() {
-  try {
-    const data: any = await getUserInfo()
-    if (data) Object.assign(userInfo.value, data)
-  } catch (e) {
-    // 静默
-  }
+// ====== 状态映射 ======
+const statusMap: Record<number, { text: string; color: string }> = {
+  0: { text: '审核中', color: 'warning' },
+  1: { text: '已通过', color: 'success' },
+  2: { text: '已拒绝', color: 'danger' }
 }
+
+// ====== 竞赛名称缓存 ======
+const compTitleMap = ref<Record<number, string>>({})
 
 async function loadData() {
   loading.value = true
   try {
     const res: any = await getMyRegistrations({
-      page: currentPage.value,
-      size: pageSize.value
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
     })
-    list.value = res.list || []
+    const records = res.records || []
     total.value = res.total || 0
+
+    // 批量获取竞赛名称
+    const ids = [...new Set(records.map((r: any) => r.competitionId).filter(Boolean))] as number[]
+    const fetches = ids
+      .filter((id) => !compTitleMap.value[id])
+      .map((id) =>
+        getCompetitionDetail(id)
+          .then((c: any) => { if (c) compTitleMap.value[id] = c.title })
+          .catch(() => {})
+      )
+    await Promise.all(fetches)
+
+    list.value = records
   } catch (e) {
-    // 失败用占位
-    list.value = placeholder
-    total.value = 30
+    list.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
+function getCompTitle(id: number) {
+  return compTitleMap.value[id] || `竞赛 #${id}`
+}
+
 function onPageChange(p: number) {
   currentPage.value = p
   loadData()
+}
+
+// ====== 团队报名数据加载 ======
+async function loadTeamData() {
+  teamLoading.value = true
+  try {
+    const res: any = await getMyTeamRegistrations({
+      pageNum: teamPage.value,
+      pageSize: teamPageSize.value
+    })
+    const records = res.records || []
+    teamTotal.value = res.total || 0
+
+    // 批量获取竞赛名称（复用 compTitleMap）
+    const ids = [...new Set(records.map((r: any) => r.competitionId).filter(Boolean))] as number[]
+    const fetches = ids
+      .filter((id) => !compTitleMap.value[id])
+      .map((id) =>
+        getCompetitionDetail(id)
+          .then((c: any) => { if (c) compTitleMap.value[id] = c.title })
+          .catch(() => {})
+      )
+    await Promise.all(fetches)
+
+    teamList.value = records
+  } catch (e) {
+    teamList.value = []
+    teamTotal.value = 0
+  } finally {
+    teamLoading.value = false
+  }
+}
+
+function onTeamPageChange(p: number) {
+  teamPage.value = p
+  loadTeamData()
+}
+
+function onTabChange(tab: 'individual' | 'team') {
+  activeTab.value = tab
+  if (tab === 'team' && teamList.value.length === 0 && teamTotal.value === 0) {
+    loadTeamData()
+  }
 }
 
 function handleCancel(row: any) {
@@ -82,15 +136,11 @@ async function confirmCancel() {
   if (!cancelTarget.value) return
   const row = cancelTarget.value
   try {
-    try {
-      await cancelRegistration(row.id)
-    } catch (e) {
-      // 静默
-    }
+    await cancelRegistration(row.id)
     ElMessage.success('已取消报名')
-    row.status = '已取消'
-    row.statusColor = 'info'
-    row._action = '已取消'
+    loadData()
+  } catch (e) {
+    // 错误已在拦截器处理
   } finally {
     cancelDialogVisible.value = false
     cancelTarget.value = null
@@ -103,76 +153,54 @@ function closeCancelDialog() {
 }
 
 function handleView(row: any) {
-  router.push(`/student-center/registration/${row.id}`)
+  router.push(`/competitions/${row.competitionId}`)
+}
+
+function getStatusInfo(status: number) {
+  return statusMap[status] || { text: '未知', color: 'info' }
 }
 
 onMounted(() => {
-  loadUser()
   loadData()
 })
 </script>
 
 <template>
   <div class="reg-page">
-    <!-- 顶部返回栏 -->
-    <div class="page-header">
-      <button class="back-btn" @click="router.back()">
-        <span>←</span>
-      </button>
-      <h1 class="page-title">校园活动管理平台</h1>
-      <div class="user-mini">
-        <div class="avatar">{{ userInfo.realName[0] }}</div>
-        <span class="user-name">{{ userInfo.realName }}</span>
-      </div>
-    </div>
-
-    <!-- 用户卡 -->
-    <div class="user-card">
-      <div class="user-header">
-        <div class="user-avatar">
-          {{ userInfo.realName[0] }}
-        </div>
-        <div class="user-info">
-          <h2 class="user-name">{{ userInfo.realName }}</h2>
-          <p class="user-college">🏛 {{ userInfo.college }} · 学号 {{ userInfo.username }}</p>
-        </div>
-      </div>
-
-      <!-- Tab 栏 -->
-      <div class="tab-bar">
-        <div class="tab-item" @click="router.push('/student/profile')">
-          <span class="tab-icon">👤</span>个人资料
-        </div>
-        <div class="tab-item active">
-          <span class="tab-icon">📋</span>报名记录
-        </div>
-        <div class="tab-item" @click="router.push('/student-center/my-teams')">
-          <span class="tab-icon">👥</span>我的团队
-        </div>
-      </div>
-    </div>
+    <!-- 标题 -->
+    <h2 class="page-title">我的报名</h2>
 
     <!-- 统计 -->
     <div class="stats-row">
       <div class="stat-card">
-        <div class="stat-icon icon-blue">📋</div>
+        <div class="stat-icon icon-blue"><el-icon><Document /></el-icon></div>
         <div>
-          <p class="stat-label">我的报名数</p>
-          <p class="stat-value">{{ total }}</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon icon-orange">👥</div>
-        <div>
-          <p class="stat-label">组建的团队</p>
-          <p class="stat-value">3</p>
+          <p class="stat-label">报名总数</p>
+          <p class="stat-value">{{ activeTab === 'team' ? teamTotal : total }}</p>
         </div>
       </div>
     </div>
 
-    <!-- 报名记录表格 -->
-    <div class="table-section">
-      <h3 class="table-title">报名记录</h3>
+    <!-- Tab 切换 -->
+    <div class="tab-bar">
+      <div
+        class="tab-item"
+        :class="{ active: activeTab === 'individual' }"
+        @click="onTabChange('individual')"
+      >
+        个人报名
+      </div>
+      <div
+        class="tab-item"
+        :class="{ active: activeTab === 'team' }"
+        @click="onTabChange('team')"
+      >
+        团队报名
+      </div>
+    </div>
+
+    <!-- 个人报名记录表格 -->
+    <div v-if="activeTab === 'individual'" class="table-section">
       <el-table
         v-loading="loading"
         :data="list"
@@ -180,34 +208,28 @@ onMounted(() => {
         class="reg-table"
         :header-cell-style="{ background: '#f7fafc', color: '#4a5568', fontWeight: 600 }"
       >
-        <el-table-column prop="title" label="竞赛名称" min-width="200">
+        <el-table-column prop="id" label="报名ID" width="90" align="center" />
+        <el-table-column prop="competitionId" label="竞赛" min-width="200">
           <template #default="{ row }">
-            <span class="comp-name">{{ row.title }}</span>
+            <span class="comp-name">{{ getCompTitle(row.competitionId) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="类型" width="120" align="center">
+        <el-table-column prop="registerTime" label="报名时间" width="180" align="center">
           <template #default="{ row }">
-            <el-tag size="small" effect="plain" :type="row.typeColor as any" round>
-              {{ row.type }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="regTime" label="报名时间" width="180" align="center">
-          <template #default="{ row }">
-            <span class="time-text">📅 {{ row.regTime }}</span>
+            <span class="time-text">{{ row.registerTime || '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="120" align="center">
           <template #default="{ row }">
-            <el-tag size="small" :type="row.statusColor as any" effect="light" round>
-              {{ row.status }}
+            <el-tag size="small" :type="getStatusInfo(row.status).color as any" effect="light" round>
+              {{ getStatusInfo(row.status).text }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="120" align="center" fixed="right">
           <template #default="{ row }">
             <el-button
-              v-if="row.status === '审核中' || row.status === '待提交'"
+              v-if="row.status === 0"
               type="danger"
               size="small"
               plain
@@ -247,7 +269,70 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 取消报名确认弹窗（状态 7） -->
+    <!-- 团队报名记录表格 -->
+    <div v-if="activeTab === 'team'" class="table-section">
+      <el-table
+        v-loading="teamLoading"
+        :data="teamList"
+        stripe
+        class="reg-table"
+        :header-cell-style="{ background: '#f7fafc', color: '#4a5568', fontWeight: 600 }"
+      >
+        <el-table-column prop="teamName" label="团队名称" min-width="140">
+          <template #default="{ row }">
+            <span class="comp-name">{{ row.teamName || `团队 #${row.teamId || '-'}` }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="competitionId" label="竞赛名称" min-width="200">
+          <template #default="{ row }">
+            <span class="comp-name">{{ getCompTitle(row.competitionId) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="registerTime" label="报名时间" width="180" align="center">
+          <template #default="{ row }">
+            <span class="time-text">{{ row.registerTime || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="120" align="center">
+          <template #default="{ row }">
+            <el-tag size="small" :type="getStatusInfo(row.status).color as any" effect="light" round>
+              {{ getStatusInfo(row.status).text }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="120" align="center" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              type="primary"
+              size="small"
+              plain
+              round
+              @click="handleView(row)"
+            >
+              查看报名
+            </el-button>
+          </template>
+        </el-table-column>
+        <template #empty>
+          <el-empty description="暂无团队报名记录" />
+        </template>
+      </el-table>
+
+      <!-- 分页 -->
+      <div v-if="teamTotal > 0" class="pagination">
+        <span class="total-text">共 {{ teamTotal }} 条</span>
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="teamTotal"
+          :page-size="teamPageSize"
+          :current-page="teamPage"
+          @current-change="onTeamPageChange"
+        />
+      </div>
+    </div>
+
+    <!-- 取消报名确认弹窗 -->
     <el-dialog
       v-model="cancelDialogVisible"
       width="480px"
@@ -270,11 +355,11 @@ onMounted(() => {
         <div v-if="cancelTarget" class="confirm-info">
           <div class="confirm-row">
             <span class="confirm-label">竞赛名称：</span>
-            <span class="confirm-value">{{ cancelTarget.title }}</span>
+            <span class="confirm-value">{{ getCompTitle(cancelTarget.competitionId) }}</span>
           </div>
           <div class="confirm-row">
             <span class="confirm-label">报名时间：</span>
-            <span class="confirm-value">{{ cancelTarget.regTime }}</span>
+            <span class="confirm-value">{{ cancelTarget.registerTime || '-' }}</span>
           </div>
         </div>
       </div>
@@ -292,162 +377,21 @@ onMounted(() => {
 @use '@/styles/variables.scss' as *;
 
 .reg-page {
-  max-width: 1280px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: $space-4 $space-6 $space-8;
-}
-
-// ===== 顶部返回栏 =====
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-2 0 $space-4;
-}
-
-.back-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: $bg-card;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: $text-regular;
-  box-shadow: $shadow-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all $transition-fast;
-
-  &:hover {
-    background: $primary-50;
-    color: $primary;
-  }
 }
 
 .page-title {
-  margin: 0;
-  font-size: $font-size-lg;
+  margin: 0 0 $space-5;
+  font-size: $font-size-xl;
   font-weight: $font-weight-semibold;
   color: $text-primary;
-}
-
-.user-mini {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-1 $space-3;
-  background: $bg-card;
-  border-radius: $radius-full;
-  box-shadow: $shadow-sm;
-}
-
-.user-mini .avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $primary, $primary-hover);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
-
-.user-mini .user-name {
-  font-size: $font-size-sm;
-  color: $text-primary;
-}
-
-// ===== 用户卡 =====
-.user-card {
-  background: $bg-card;
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-  padding: $space-5;
-  margin-bottom: $space-4;
-}
-
-.user-header {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  margin-bottom: $space-5;
-}
-
-.user-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $primary, $primary-hover);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: $font-weight-semibold;
-  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-info .user-name {
-  margin: 0 0 $space-1;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-}
-
-.user-college {
-  margin: 0;
-  font-size: $font-size-sm;
-  color: $text-secondary;
-}
-
-// ===== Tab =====
-.tab-bar {
-  display: flex;
-  border-top: 1px solid $border-light;
-  margin: 0 (-$space-5) (-$space-5);
-}
-
-.tab-item {
-  flex: 1;
-  padding: $space-4;
-  text-align: center;
-  cursor: pointer;
-  color: $text-secondary;
-  font-size: $font-size-sm;
-  border-top: 2px solid transparent;
-  transition: all $transition-fast;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-1;
-
-  &:hover {
-    color: $primary;
-  }
-
-  &.active {
-    color: $primary;
-    border-top-color: $primary;
-    font-weight: $font-weight-medium;
-  }
-}
-
-.tab-icon {
-  font-size: 16px;
 }
 
 // ===== 统计 =====
 .stats-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: $space-3;
   margin-bottom: $space-4;
 }
@@ -484,11 +428,6 @@ onMounted(() => {
   color: $primary;
 }
 
-.icon-orange {
-  background: #fff5e6;
-  color: $warning;
-}
-
 .stat-label {
   margin: 0 0 2px;
   font-size: $font-size-xs;
@@ -502,19 +441,39 @@ onMounted(() => {
   color: $text-primary;
 }
 
+// ===== Tab 切换 =====
+.tab-bar {
+  display: flex;
+  gap: $space-3;
+  margin-bottom: $space-4;
+}
+
+.tab-item {
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all $transition-fast;
+  user-select: none;
+
+  &:hover {
+    color: $primary;
+  }
+
+  &.active {
+    color: $primary;
+    border-bottom-color: $primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
 // ===== 表格 Section =====
 .table-section {
   background: $bg-card;
   border-radius: $radius-md;
   box-shadow: $shadow-sm;
   padding: $space-5;
-}
-
-.table-title {
-  margin: 0 0 $space-4;
-  font-size: $font-size-md;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
 }
 
 .reg-table {
@@ -547,19 +506,6 @@ onMounted(() => {
 .total-text {
   font-size: $font-size-sm;
   color: $text-secondary;
-}
-
-// ===== 响应式 =====
-@media (max-width: 768px) {
-  .reg-page {
-    padding: $space-3 $space-4;
-  }
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
-  .user-mini .user-name {
-    display: none;
-  }
 }
 
 // ===== 弹窗样式 =====

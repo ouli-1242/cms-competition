@@ -2,12 +2,12 @@
 /**
  * 管理员后台布局
  * - 蓝色渐变侧边栏
- * - 顶部栏：切换角色 / 欢迎 / 退出登录
+ * - 顶部栏：返回首页 / 欢迎 / 退出登录
  */
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -20,15 +20,11 @@ const menus = [
   { path: '/admin/registrations', label: '报名管理', icon: 'UserFilled' },
   { path: '/admin/banners', label: '内容维护', icon: 'Picture' },
   { path: '/admin/stats', label: '数据统计', icon: 'TrendCharts' },
-  { path: '/student-center/my-teams', label: '个人中心', icon: 'User' }
+  { path: '/admin/profile-changes', label: '资料审批', icon: 'Document' },
+  { path: '/admin/users', label: '用户管理', icon: 'User' }
 ]
 
 // 顶部信息
-const roleText = computed(() => {
-  const map: any = { ADMIN: '管理员', TEACHER: '老师', STUDENT: '学生' }
-  return map[userStore.user?.role] || '用户'
-})
-
 const userDisplay = computed(() => {
   return userStore.user?.realName || userStore.user?.username || '系统管理员'
 })
@@ -37,33 +33,6 @@ function logout() {
   userStore.logout()
   router.push('/login')
 }
-
-// 切换角色
-const roleOptions = [
-  { label: '管理员', value: 'admin' },
-  { label: '老师', value: 'teacher' },
-  { label: '学生', value: 'student' }
-]
-
-const currentRole = ref('admin')
-
-function switchRole(val: string) {
-  if (val === 'admin') {
-    router.push('/admin')
-  } else if (val === 'teacher') {
-    router.push('/teacher')
-  } else {
-    router.push('/student/profile')
-  }
-}
-
-function showRoleDialog() {
-  // 简化：直接弹出下拉选择，这里用 prompt 模拟
-  const role = window.prompt('切换角色：\n1. 管理员\n2. 老师\n3. 学生\n\n请输入数字：', '1')
-  if (role === '1') router.push('/admin')
-  else if (role === '2') router.push('/teacher')
-  else if (role === '3') router.push('/student/profile')
-}
 </script>
 
 <template>
@@ -71,7 +40,11 @@ function showRoleDialog() {
     <!-- 蓝色渐变侧边栏 -->
     <aside class="sider">
       <div class="logo">
-        <span class="logo-icon">🏆</span>
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff">
+            <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+          </svg>
+        </div>
         <span class="logo-text">竞赛管理系统</span>
       </div>
 
@@ -95,12 +68,13 @@ function showRoleDialog() {
     <div class="content">
       <!-- 顶部栏 -->
       <header class="topbar">
-        <el-button class="role-switch" type="primary" plain @click="showRoleDialog">
-          <el-icon><Refresh /></el-icon>
-          切换角色: {{ roleText }}
+        <el-button class="role-switch" type="primary" plain @click="router.push('/')">
+          <el-icon><HomeFilled /></el-icon>
+          返回首页
         </el-button>
 
         <div class="user-area">
+          <NotificationBell />
           <span class="welcome">欢迎: <strong>{{ userDisplay }}</strong></span>
           <el-button class="logout-btn" type="info" plain @click="logout">
             <el-icon><SwitchButton /></el-icon>退出登录
@@ -150,7 +124,13 @@ function showRoleDialog() {
 }
 
 .logo-icon {
-  font-size: 22px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu {

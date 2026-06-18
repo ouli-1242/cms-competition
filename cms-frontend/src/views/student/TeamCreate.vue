@@ -1,23 +1,25 @@
 <script setup lang="ts">
 /**
  * 创建团队页
- * - 选择竞赛
+ * - 选择竞赛（团队赛）
  * - 输入团队名称
+ * - 搜索并邀请学生（多选）
+ * - 搜索并邀请指导老师（单选）
  * - 创建后展示邀请码
  */
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { getCompetitionDetail } from '@/api/public'
-import { createTeam } from '@/api/team'
+import { useRouter } from 'vue-router'
+import { getCompetitions } from '@/api/public'
+import { createTeam, searchStudents, searchTeachers } from '@/api/team'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
-const route = useRoute()
 const userStore = useUserStore()
 
 const loading = ref(false)
 const submitting = ref(false)
-const competition = ref<any>(null)
+const competitions = ref<any[]>([])
+const selectedCompetitionId = ref<number | null>(null)
 const teamName = ref('')
 const error = ref('')
 
@@ -25,20 +27,79 @@ const error = ref('')
 const successVisible = ref(false)
 const createdTeam = ref<any>(null)
 
-async function loadCompetition() {
+// ===== 学生搜索（多选） =====
+const studentKeyword = ref('')
+const studentResults = ref<any[]>([])
+const selectedStudents = ref<any[]>([])   // {id, realName, college, avatar}
+const searchingStudents = ref(false)
+
+async function doSearchStudents() {
+  if (!studentKeyword.value.trim()) return
+  searchingStudents.value = true
+  try {
+    const res: any = await searchStudents(studentKeyword.value.trim())
+    // 排除自己
+    const myId = userStore.user?.id
+    studentResults.value = (res || []).filter((s: any) => s.id !== myId)
+  } catch {
+    studentResults.value = []
+  } finally {
+    searchingStudents.value = false
+  }
+}
+
+function toggleStudent(s: any) {
+  const idx = selectedStudents.value.findIndex(x => x.id === s.id)
+  if (idx >= 0) {
+    selectedStudents.value.splice(idx, 1)
+  } else {
+    selectedStudents.value.push(s)
+  }
+}
+
+function isSelectedStudent(id: number) {
+  return selectedStudents.value.some(x => x.id === id)
+}
+
+function removeStudent(id: number) {
+  selectedStudents.value = selectedStudents.value.filter(x => x.id !== id)
+}
+
+// ===== 教师搜索（单选） =====
+const teacherKeyword = ref('')
+const teacherResults = ref<any[]>([])
+const selectedTeacher = ref<any>(null)     // {id, realName, college, avatar}
+const searchingTeachers = ref(false)
+
+async function doSearchTeachers() {
+  if (!teacherKeyword.value.trim()) return
+  searchingTeachers.value = true
+  try {
+    const res: any = await searchTeachers(teacherKeyword.value.trim())
+    teacherResults.value = res || []
+  } catch {
+    teacherResults.value = []
+  } finally {
+    searchingTeachers.value = false
+  }
+}
+
+function selectTeacher(t: any) {
+  selectedTeacher.value = selectedTeacher.value?.id === t.id ? null : t
+}
+
+function clearTeacher() {
+  selectedTeacher.value = null
+}
+
+// ===== 竞赛加载 =====
+async function loadCompetitions() {
   loading.value = true
   try {
-    const data = await getCompetitionDetail(Number(route.query.competitionId))
-    competition.value = data
+    const res: any = await getCompetitions({ pageNum: 1, pageSize: 50, type: 2, registrationStatus: 1 })
+    competitions.value = res?.records || []
   } catch (e) {
-    competition.value = {
-      id: Number(route.query.competitionId),
-      title: '高校大学生创新创业挑战赛',
-      type: '团体赛',
-      category: 'A类',
-      minMembers: 3,
-      maxMembers: 5
-    }
+    competitions.value = []
   } finally {
     loading.value = false
   }
@@ -46,10 +107,14 @@ async function loadCompetition() {
 
 async function handleCreate() {
   if (!userStore.isLoggedIn) {
-    router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    router.push({ name: 'Login' })
     return
   }
   error.value = ''
+  if (!selectedCompetitionId.value) {
+    error.value = '请选择竞赛'
+    return
+  }
   if (!teamName.value.trim()) {
     error.value = '请输入团队名称'
     return
@@ -61,8 +126,10 @@ async function handleCreate() {
   submitting.value = true
   try {
     const res: any = await createTeam({
-      competitionId: competition.value.id,
-      teamName: teamName.value
+      competitionId: selectedCompetitionId.value,
+      teamName: teamName.value,
+      studentIds: selectedStudents.value.map(s => s.id),
+      teacherId: selectedTeacher.value?.id
     })
     createdTeam.value = res || {
       teamName: teamName.value,
@@ -73,6 +140,8 @@ async function handleCreate() {
   } catch (e: any) {
     if (e?.message?.includes('已存在') || e?.code === 'TEAM_EXISTS') {
       error.value = '团队名重复或格式错误，请重新创建'
+    } else if (e?.message) {
+      error.value = e.message
     } else {
       error.value = '创建失败，请稍后重试'
     }
@@ -83,7 +152,12 @@ async function handleCreate() {
 
 function onSuccessClose() {
   successVisible.value = false
-  router.push('/student-center/team-manage')
+  const teamId = createdTeam.value?.id || createdTeam.value?.teamId
+  if (teamId) {
+    router.push(`/student-center/team-manage/${teamId}`)
+  } else {
+    router.push('/student-center/my-teams')
+  }
 }
 
 function copyInviteCode() {
@@ -93,7 +167,7 @@ function copyInviteCode() {
 }
 
 onMounted(() => {
-  loadCompetition()
+  loadCompetitions()
 })
 </script>
 
@@ -106,8 +180,8 @@ onMounted(() => {
       </button>
       <h1 class="page-title">高校学科竞赛报名管理系统</h1>
       <div class="user-mini" v-if="userStore.isLoggedIn">
-        <div class="avatar">{{ userStore.realName?.[0] || 'U' }}</div>
-        <span class="user-name">{{ userStore.realName || '用户' }}</span>
+        <div class="avatar">{{ userStore.user?.realName?.[0] || 'U' }}</div>
+        <span class="user-name">{{ userStore.user?.realName || '用户' }}</span>
       </div>
       <div v-else class="placeholder"></div>
     </div>
@@ -134,11 +208,20 @@ onMounted(() => {
         <div class="form-section">
           <h3 class="section-title">竞赛信息</h3>
           <div class="form-item">
-            <label class="form-label">选择竞赛</label>
-            <div class="form-input readonly">
-              <span class="value">✅ {{ competition?.title || '高校大学生创新创业挑战赛' }}</span>
-            </div>
-            <p class="form-tip">{{ competition?.type || '团体赛' }} · {{ competition?.category || 'A类' }}</p>
+            <label class="form-label">
+              <span class="required">*</span>选择竞赛
+            </label>
+            <select
+              v-model="selectedCompetitionId"
+              class="form-input"
+              :class="{ 'is-error': error === '请选择竞赛' }"
+            >
+              <option :value="null" disabled>请选择团队赛竞赛</option>
+              <option v-for="c in competitions" :key="c.id" :value="c.id">
+                {{ c.title }}
+              </option>
+            </select>
+            <p v-if="competitions.length === 0" class="form-tip">暂无可报名的团队赛竞赛</p>
           </div>
         </div>
 
@@ -161,6 +244,114 @@ onMounted(() => {
               <span class="error-icon">⚠</span>{{ error }}
             </p>
             <p v-else class="form-tip">创建后团队名称不可修改，请谨慎填写</p>
+          </div>
+        </div>
+
+        <!-- 邀请队员（多选） -->
+        <div class="form-section">
+          <h3 class="section-title">邀请队员 <span class="section-sub">（可选）</span></h3>
+          <div class="search-bar">
+            <input
+              v-model="studentKeyword"
+              type="text"
+              class="form-input search-input"
+              placeholder="输入姓名或学院搜索学生"
+              @keyup.enter="doSearchStudents"
+            />
+            <button class="btn-search" @click="doSearchStudents" :disabled="searchingStudents">
+              {{ searchingStudents ? '搜索中...' : '搜索' }}
+            </button>
+          </div>
+
+          <!-- 搜索结果列表 -->
+          <div v-if="studentResults.length > 0" class="search-results">
+            <div
+              v-for="s in studentResults"
+              :key="s.id"
+              class="result-item"
+              :class="{ selected: isSelectedStudent(s.id) }"
+              @click="toggleStudent(s)"
+            >
+              <div class="result-avatar">
+                <img v-if="s.avatar" :src="s.avatar" class="avatar-img" />
+                <span v-else>{{ s.realName?.[0] || 'U' }}</span>
+              </div>
+              <div class="result-info">
+                <span class="result-name">{{ s.realName }}</span>
+                <span class="result-college">{{ s.college || '未知学院' }}</span>
+              </div>
+              <div class="result-check">
+                <span v-if="isSelectedStudent(s.id)" class="check-mark">✓</span>
+              </div>
+            </div>
+          </div>
+          <p v-else-if="studentKeyword && !searchingStudents" class="form-tip">
+            未找到匹配的学生，请尝试其他关键词
+          </p>
+
+          <!-- 已选队员标签 -->
+          <div v-if="selectedStudents.length > 0" class="selected-tags">
+            <span class="tags-label">已选择 {{ selectedStudents.length }} 人：</span>
+            <div class="tag-list">
+              <span v-for="s in selectedStudents" :key="s.id" class="tag-item">
+                {{ s.realName }}
+                <button class="tag-remove" @click="removeStudent(s.id)">×</button>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 邀请指导老师（单选） -->
+        <div class="form-section">
+          <h3 class="section-title">邀请指导老师 <span class="section-sub">（可选）</span></h3>
+          <div class="search-bar">
+            <input
+              v-model="teacherKeyword"
+              type="text"
+              class="form-input search-input"
+              placeholder="输入姓名或学院搜索教师"
+              @keyup.enter="doSearchTeachers"
+            />
+            <button class="btn-search" @click="doSearchTeachers" :disabled="searchingTeachers">
+              {{ searchingTeachers ? '搜索中...' : '搜索' }}
+            </button>
+          </div>
+
+          <!-- 搜索结果列表 -->
+          <div v-if="teacherResults.length > 0" class="search-results">
+            <div
+              v-for="t in teacherResults"
+              :key="t.id"
+              class="result-item"
+              :class="{ selected: selectedTeacher?.id === t.id }"
+              @click="selectTeacher(t)"
+            >
+              <div class="result-avatar">
+                <img v-if="t.avatar" :src="t.avatar" class="avatar-img" />
+                <span v-else>{{ t.realName?.[0] || 'U' }}</span>
+              </div>
+              <div class="result-info">
+                <span class="result-name">{{ t.realName }}</span>
+                <span class="result-college">{{ t.college || '未知学院' }}</span>
+              </div>
+              <div class="result-check">
+                <span v-if="selectedTeacher?.id === t.id" class="check-mark">✓</span>
+              </div>
+            </div>
+          </div>
+          <p v-else-if="teacherKeyword && !searchingTeachers" class="form-tip">
+            未找到匹配的教师，请尝试其他关键词
+          </p>
+
+          <!-- 已选教师 -->
+          <div v-if="selectedTeacher" class="selected-tags">
+            <span class="tags-label">已选择：</span>
+            <div class="tag-list">
+              <span class="tag-item">
+                {{ selectedTeacher.realName }}
+                <button class="tag-remove" @click="clearTeacher()">×</button>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -198,7 +389,7 @@ onMounted(() => {
               {{ createdTeam?.inviteCode }}
             </span>
           </div>
-          <p class="tip">📌 6 位邀请码有效期 {{ createdTeam?.expireDays || 5 }} 天</p>
+          <p class="tip">6 位邀请码有效期 {{ createdTeam?.expireDays || 5 }} 天</p>
         </div>
       </div>
       <template #footer>
@@ -601,6 +792,175 @@ onMounted(() => {
   }
   .user-mini .user-name {
     display: none;
+  }
+}
+
+// ===== 搜索区域 =====
+.section-sub {
+  font-weight: $font-weight-regular;
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+.search-bar {
+  display: flex;
+  gap: $space-2;
+  margin-bottom: $space-3;
+}
+
+.search-input {
+  flex: 1;
+}
+
+.btn-search {
+  height: 42px;
+  padding: 0 $space-4;
+  border: 1px solid $border-base;
+  background: $bg-card;
+  color: $primary;
+  font-size: $font-size-sm;
+  border-radius: $radius-base;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: $primary-50;
+    border-color: $primary;
+  }
+  &:disabled {
+    color: $text-disabled;
+    cursor: not-allowed;
+  }
+}
+
+.search-results {
+  border: 1px solid $border-light;
+  border-radius: $radius-base;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-bottom: $space-3;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-2 $space-3;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $primary-50;
+  }
+
+  &.selected {
+    background: $primary-50;
+  }
+
+  & + .result-item {
+    border-top: 1px solid $border-light;
+  }
+}
+
+.result-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $primary, $primary-hover);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.result-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.result-name {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-primary;
+}
+
+.result-college {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+.result-check {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.check-mark {
+  color: $primary;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-md;
+}
+
+// ===== 已选标签 =====
+.selected-tags {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+  padding: $space-2 0;
+}
+
+.tags-label {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+.tag-list {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px $space-2 2px $space-3;
+  background: $primary-50;
+  color: $primary;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.tag-remove {
+  border: none;
+  background: transparent;
+  color: $primary;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.6;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 1;
   }
 }
 </style>

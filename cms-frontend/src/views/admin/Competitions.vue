@@ -8,6 +8,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getCompetitions, createCompetition, updateCompetition, deleteCompetition, toggleCompetitionStatus } from '@/api/admin'
+import { uploadFile } from '@/api/upload'
 
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -19,8 +20,12 @@ const submitting = ref(false)
 const form = reactive<any>({
   id: null,
   title: '',
+  description: '',
   category: '科技类',
-  registerTime: '',
+  registerStart: '',
+  registerEnd: '',
+  compStart: '',
+  compEnd: '',
   maxMembers: 100,
   type: 'TEAM',  // INDIVIDUAL/TEAM
   auditEnabled: true,
@@ -51,8 +56,13 @@ const placeholder = [
 async function loadData() {
   loading.value = true
   try {
-    const res: any = await getCompetitions({ page: 1, size: 100 })
-    list.value = res?.list || []
+    const res: any = await getCompetitions({ pageNum: 1, pageSize: 100 })
+    const records = res?.records || []
+    list.value = records.map((r: any) => ({
+      ...r,
+      statusText: r.status === 1 ? '已上架' : '已下架',
+      type: r.type === 2 ? 'TEAM' : 'INDIVIDUAL'
+    }))
   } catch (e) {
     list.value = placeholder
   } finally {
@@ -65,8 +75,12 @@ function openCreate() {
   Object.assign(form, {
     id: null,
     title: '',
+    description: '',
     category: '科技类',
-    registerTime: new Date().toISOString().slice(0, 16),
+    registerStart: new Date().toISOString().slice(0, 16),
+    registerEnd: '',
+    compStart: '',
+    compEnd: '',
     maxMembers: 100,
     type: 'TEAM',
     auditEnabled: true,
@@ -79,12 +93,20 @@ function openCreate() {
 
 function openEdit(row: any) {
   isEdit.value = true
-  // 检查是否已有报名
   if (row.count > 0) {
     restrictVisible.value = true
     return
   }
-  Object.assign(form, { ...row, registerTime: row.registerTime || new Date().toISOString().slice(0, 16) })
+  Object.assign(form, {
+    ...row,
+    description: row.description || '',
+    registerStart: row.registerStart || new Date().toISOString().slice(0, 16),
+    registerEnd: row.registerEnd || '',
+    compStart: row.compStart || '',
+    compEnd: row.compEnd || '',
+    type: row.type === 2 || row.type === 'TEAM' ? 'TEAM' : 'INDIVIDUAL',
+    maxMembers: row.maxTeamSize || row.maxMembers || 100
+  })
   formVisible.value = true
 }
 
@@ -110,15 +132,24 @@ async function handleSave() {
   if (!validate()) return
   submitting.value = true
   try {
+    const dto: any = {
+      title: form.title,
+      description: form.description,
+      category: form.category,
+      type: form.type === 'TEAM' ? 2 : 1,
+      maxTeamSize: form.maxMembers,
+      minTeamSize: 1,
+      cover: form.cover
+    }
+    if (form.registerStart) dto.registerStart = form.registerStart
+    if (form.registerEnd) dto.registerEnd = form.registerEnd
+    if (form.compStart) dto.compStart = form.compStart
+    if (form.compEnd) dto.compEnd = form.compEnd
     if (isEdit.value) {
-      try {
-        await updateCompetition(form.id, form)
-      } catch (e) {}
+      await updateCompetition(form.id, dto)
       ElMessage.success('保存成功')
     } else {
-      try {
-        await createCompetition(form)
-      } catch (e) {}
+      await createCompetition(dto)
       ElMessage.success('发布成功')
     }
     formVisible.value = false
@@ -135,9 +166,7 @@ function openDelete(row: any) {
 
 async function confirmDelete() {
   if (!deleteTarget.value) return
-  try {
-    await deleteCompetition(deleteTarget.value.id)
-  } catch (e) {}
+  await deleteCompetition(deleteTarget.value.id)
   ElMessage.success('删除成功')
   list.value = list.value.filter((x) => x.id !== deleteTarget.value.id)
   deleteVisible.value = false
@@ -145,9 +174,7 @@ async function confirmDelete() {
 }
 
 async function handleToggle(row: any) {
-  try {
-    await toggleCompetitionStatus(row.id, row.status === 1 ? 0 : 1)
-  } catch (e) {}
+  await toggleCompetitionStatus(row.id, row.status === 1 ? 0 : 1)
   row.status = row.status === 1 ? 0 : 1
   row.statusText = row.status === 1 ? '已上架' : '已下架'
   successText.value = row.status === 1 ? '已上架，前台显示该竞赛' : '已下架，前台不再显示该竞赛'
@@ -168,10 +195,19 @@ const fileInput = ref<HTMLInputElement | null>(null)
 function triggerUpload() {
   fileInput.value?.click()
 }
-function onFileChange(e: Event) {
+const uploading = ref(false)
+async function onFileChange(e: Event) {
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
-  if (file) form.cover = file.name
+  if (!file) return
+  uploading.value = true
+  try {
+    const url = await uploadFile(file, 'cover')
+    form.cover = url
+    ElMessage.success('封面上传成功')
+  } finally {
+    uploading.value = false
+  }
 }
 
 onMounted(() => {
@@ -255,7 +291,7 @@ onMounted(() => {
     <el-dialog
       v-model="formVisible"
       :title="isEdit ? '编辑竞赛' : '发布竞赛'"
-      width="640px"
+      width="720px"
       :close-on-click-modal="false"
       align-center
     >
@@ -283,9 +319,33 @@ onMounted(() => {
           </select>
         </div>
         <div class="form-item">
-          <label class="form-label">报名时间</label>
+          <label class="form-label">报名开始</label>
           <input
-            v-model="form.registerTime"
+            v-model="form.registerStart"
+            type="datetime-local"
+            class="form-input"
+          />
+        </div>
+        <div class="form-item">
+          <label class="form-label">报名截止</label>
+          <input
+            v-model="form.registerEnd"
+            type="datetime-local"
+            class="form-input"
+          />
+        </div>
+        <div class="form-item">
+          <label class="form-label">竞赛开始</label>
+          <input
+            v-model="form.compStart"
+            type="datetime-local"
+            class="form-input"
+          />
+        </div>
+        <div class="form-item">
+          <label class="form-label">竞赛截止</label>
+          <input
+            v-model="form.compEnd"
             type="datetime-local"
             class="form-input"
           />
@@ -318,10 +378,24 @@ onMounted(() => {
           </select>
         </div>
         <div class="form-item form-item-full">
+          <label class="form-label">竞赛介绍</label>
+          <textarea
+            v-model="form.description"
+            class="form-input form-textarea"
+            placeholder="请输入竞赛介绍、参赛规则等信息"
+            rows="4"
+            maxlength="2000"
+          ></textarea>
+        </div>
+        <div class="form-item form-item-full">
           <label class="form-label">竞赛封面</label>
           <div class="upload-zone" @click="triggerUpload">
-            <span v-if="!form.cover">📁 选择文件</span>
-            <span v-else class="file-name">📄 {{ form.cover }}</span>
+            <template v-if="uploading">上传中...</template>
+            <template v-else-if="form.cover && form.cover.startsWith('http')">
+              <img :src="form.cover" alt="cover" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 4px;" />
+            </template>
+            <span v-else-if="form.cover" class="file-name">{{ form.cover }}</span>
+            <span v-else>选择文件</span>
           </div>
           <input
             ref="fileInput"
@@ -350,7 +424,7 @@ onMounted(() => {
       align-center
     >
       <template #header>
-        <div class="dialog-header"><h3>此页面显示</h3></div>
+        <div class="dialog-header"><h3>编辑限制</h3></div>
       </template>
       <div class="dialog-body">
         <p class="dialog-text">该竞赛已有报名，报名时间/人数/参赛类型不可修改!</p>
@@ -370,7 +444,7 @@ onMounted(() => {
       align-center
     >
       <template #header>
-        <div class="dialog-header"><h3>此页面显示</h3></div>
+        <div class="dialog-header"><h3>确认删除</h3></div>
       </template>
       <div class="dialog-body">
         <p class="dialog-text">确定删除该竞赛吗？删除后无法恢复!</p>
@@ -391,7 +465,7 @@ onMounted(() => {
       align-center
     >
       <template #header>
-        <div class="dialog-header"><h3>此页面显示</h3></div>
+        <div class="dialog-header"><h3>操作成功</h3></div>
       </template>
       <div class="dialog-body">
         <p class="dialog-text">{{ successText }}</p>
@@ -527,6 +601,14 @@ onMounted(() => {
   background-size: 12px;
   padding-right: 32px;
   cursor: pointer;
+}
+
+.form-textarea {
+  height: auto;
+  padding: $space-2 $space-3;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
 }
 
 .error-text {

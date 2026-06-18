@@ -9,6 +9,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { getCompetitions } from '@/api/public'
 import type { Competition, PageResult } from '@/api/public'
 
@@ -19,6 +20,7 @@ const route = useRoute()
 const filters = ref({
   keyword: (route.query.keyword as string) || '',
   category: (route.query.category as string) || '',
+  type: route.query.type !== undefined ? Number(route.query.type) : '',
   status: route.query.status !== undefined ? Number(route.query.status) : ''
 })
 
@@ -46,25 +48,10 @@ const statusOptions = [
   { label: '即将开始', value: 0 },
   { label: '已截止', value: 2 }
 ]
-
-// ====== 占位数据 ======
-const placeholder: Competition[] = [
-  { id: 1, title: '2026 全国大学生算法编程挑战赛', category: '程序设计', organizer: '中国计算机学会', registerStart: '2026-02-15', registerEnd: '2026-05-31', contestTime: '2026-06-15', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 2, title: '2026 ACM 国际大学生程序设计竞赛', category: '程序设计', organizer: 'ACM 中国', registerStart: '2026-03-01', registerEnd: '2026-05-15', contestTime: '2026-06-20', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 3, title: '2026 全国大学生电子设计竞赛', category: '电子设计', organizer: '教育部', registerStart: '2026-04-01', registerEnd: '2026-05-20', contestTime: '2026-07-15', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 4, title: '"挑战杯"全国大学生创业计划竞赛', category: '挑战杯', organizer: '团中央', registerStart: '2026-03-15', registerEnd: '2026-06-30', contestTime: '2026-09-10', maxTeamSize: 8, status: 1, cover: '', description: '' },
-  { id: 5, title: '2026 全国大学生英语竞赛', category: '英语竞赛', organizer: '外语教学协会', registerStart: '2026-02-01', registerEnd: '2026-04-30', contestTime: '2026-05-25', maxTeamSize: 1, status: 1, cover: '', description: '' },
-  { id: 6, title: '2026 中国机器人大赛', category: '机械创新', organizer: '中国自动化学会', registerStart: '2026-04-01', registerEnd: '2026-06-15', contestTime: '2026-08-10', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 7, title: '2026 全国大学生物联网设计竞赛', category: '电子设计', organizer: '教育部', registerStart: '2026-03-01', registerEnd: '2026-05-31', contestTime: '2026-07-20', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 8, title: '"互联网+"大学生创新创业大赛', category: '互联网+', organizer: '教育部', registerStart: '2026-04-15', registerEnd: '2026-07-15', contestTime: '2026-10-20', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 9, title: '2026 全国大学生广告艺术大赛', category: '文化创意', organizer: '教育部', registerStart: '2026-03-01', registerEnd: '2026-06-15', contestTime: '2026-09-05', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 10, title: '2026 全国大学生物理竞赛', category: '物理', organizer: '物理学会', registerStart: '2026-02-15', registerEnd: '2026-05-10', contestTime: '2026-08-15', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 11, title: '2026 全国大学生化学竞赛', category: '化学', organizer: '化学学会', registerStart: '2026-03-01', registerEnd: '2026-05-20', contestTime: '2026-07-25', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 12, title: '2026 全国大学生生物竞赛', category: '生物', organizer: '生物学会', registerStart: '2026-04-01', registerEnd: '2026-06-10', contestTime: '2026-08-20', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 13, title: '2026 全国大学生市场调查与分析大赛', category: '经管', organizer: '教育部', registerStart: '2026-02-15', registerEnd: '2026-05-15', contestTime: '2026-07-30', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 14, title: '2026 全国大学生交通科技大赛', category: '交通', organizer: '交通部', registerStart: '2026-03-10', registerEnd: '2026-06-05', contestTime: '2026-07-15', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 15, title: '2026 全国大学生工程训练综合能力竞赛', category: '机械创新', organizer: '教育部', registerStart: '2026-03-20', registerEnd: '2026-06-20', contestTime: '2026-08-25', maxTeamSize: 4, status: 1, cover: '', description: '' },
-  { id: 16, title: '2026 全国大学生节能减排社会实践与科技竞赛', category: '能源', organizer: '教育部', registerStart: '2026-04-01', registerEnd: '2026-06-30', contestTime: '2026-08-30', maxTeamSize: 5, status: 1, cover: '', description: '' }
+const typeOptions = [
+  { label: '全部', value: '' },
+  { label: '个人赛', value: 1 },
+  { label: '团队赛', value: 2 }
 ]
 
 // ====== 加载数据 ======
@@ -72,26 +59,32 @@ async function loadData() {
   loading.value = true
   try {
     const res: any = await getCompetitions({
-      page: currentPage.value,
-      size: pageSize.value,
+      pageNum: currentPage.value,
+      pageSize: pageSize.value,
       keyword: filters.value.keyword || undefined,
       category: filters.value.category || undefined,
-      status: filters.value.status === '' ? undefined : (filters.value.status as number)
+      type: filters.value.type !== '' ? Number(filters.value.type) : undefined,
+      registrationStatus: filters.value.status !== '' ? Number(filters.value.status) : undefined
     })
-    list.value = res.list || []
-    total.value = res.total || 0
-  } catch (e) {
-    // API 失败用占位
-    list.value = paginate(placeholder, currentPage.value, pageSize.value)
-    total.value = placeholder.length
+
+    list.value = res?.records || []
+    total.value = res?.total || 0
+  } catch (e: any) {
+    ElMessage.error('加载竞赛列表失败：' + (e?.message || '未知错误'))
+    list.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
-function paginate<T>(arr: T[], page: number, size: number): T[] {
-  const start = (page - 1) * size
-  return arr.slice(start, start + size)
+function computeStatus(c: Competition): number {
+  const now = Date.now()
+  const start = c.registerStart ? new Date(c.registerStart).getTime() : 0
+  const end = c.registerEnd ? new Date(c.registerEnd).getTime() : 0
+  if (now < start) return 0   // 即将开始
+  if (now > end) return 2     // 已截止
+  return 1                     // 报名中
 }
 
 function onSearch() {
@@ -102,6 +95,7 @@ function onSearch() {
     query: {
       keyword: filters.value.keyword || undefined,
       category: filters.value.category || undefined,
+      type: filters.value.type === '' ? undefined : String(filters.value.type),
       status: filters.value.status === '' ? undefined : String(filters.value.status)
     }
   })
@@ -114,10 +108,12 @@ function onPageChange(p: number) {
 }
 
 // 状态文案/颜色
-function statusText(s?: number) {
+function statusText(c: Competition) {
+  const s = computeStatus(c)
   return s === 1 ? '报名中' : s === 2 ? '已截止' : '即将开始'
 }
-function statusType(s?: number) {
+function statusType(c: Competition) {
+  const s = computeStatus(c)
   return s === 1 ? 'success' : s === 2 ? 'info' : 'warning'
 }
 
@@ -143,7 +139,9 @@ watch(
   () => {
     filters.value.keyword = (route.query.keyword as string) || ''
     filters.value.category = (route.query.category as string) || ''
+    filters.value.type = route.query.type !== undefined ? Number(route.query.type) : ('' as any)
     filters.value.status = route.query.status !== undefined ? Number(route.query.status) : ('' as any)
+    currentPage.value = 1
     loadData()
   }
 )
@@ -194,6 +192,20 @@ onMounted(() => {
         </div>
       </div>
       <div class="filter-row">
+        <span class="filter-label">赛制：</span>
+        <div class="filter-tags">
+          <button
+            v-for="opt in typeOptions"
+            :key="opt.value"
+            class="filter-tag"
+            :class="{ active: filters.type === opt.value }"
+            @click="filters.type = opt.value as any; onSearch()"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </div>
+      <div class="filter-row">
         <span class="filter-label">状态：</span>
         <div class="filter-tags">
           <button
@@ -212,10 +224,6 @@ onMounted(() => {
     <!-- 标题行 -->
     <div class="result-header">
       <h2>共找到 <span class="count">{{ total }}</span> 个竞赛</h2>
-      <div class="sort-tabs">
-        <button class="sort-tab active">综合排序</button>
-        <button class="sort-tab">人气</button>
-      </div>
     </div>
 
     <!-- 卡片网格 -->
@@ -229,17 +237,18 @@ onMounted(() => {
         :lg="8"
       >
         <div class="comp-card" @click="router.push(`/competitions/${c.id}`)">
-          <div class="comp-cover" :style="coverStyle(c.title)">
-            <span class="cover-text">{{ c.title.slice(0, 2) }}</span>
-            <el-tag class="status-tag" :type="statusType(c.status)" effect="dark" round size="small">
-              {{ statusText(c.status) }}
+          <div class="comp-cover" :style="c.cover ? undefined : coverStyle(c.title)">
+            <img v-if="c.cover" :src="c.cover" :alt="c.title" class="cover-img" />
+            <span v-else class="cover-text">{{ c.title.slice(0, 2) }}</span>
+            <el-tag class="status-tag" :type="statusType(c)" effect="dark" round size="small">
+              {{ statusText(c) }}
             </el-tag>
           </div>
           <div class="comp-body">
             <h3 class="comp-title">{{ c.title }}</h3>
-            <p class="comp-organizer">🏛 {{ c.organizer }}</p>
+            <p class="comp-organizer">{{ c.category }}</p>
             <div class="comp-footer">
-              <span class="comp-count">👥 {{ 1024 + c.id * 17 }}人</span>
+              <span class="comp-count">{{ c.registrationCount ?? 0 }}{{ c.type === 2 ? '队' : '人' }}参赛</span>
             </div>
           </div>
         </div>
@@ -444,25 +453,6 @@ onMounted(() => {
   }
 }
 
-.sort-tabs {
-  display: flex;
-  gap: $space-3;
-}
-
-.sort-tab {
-  border: none;
-  background: transparent;
-  color: $text-secondary;
-  font-size: $font-size-sm;
-  cursor: pointer;
-  padding: $space-1 $space-2;
-
-  &.active {
-    color: $primary;
-    font-weight: $font-weight-medium;
-  }
-}
-
 // ===== 卡片网格 =====
 .card-grid {
   min-height: 200px;
@@ -505,6 +495,14 @@ onMounted(() => {
 .cover-text {
   position: relative;
   z-index: 1;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
 }
 
 .status-tag {

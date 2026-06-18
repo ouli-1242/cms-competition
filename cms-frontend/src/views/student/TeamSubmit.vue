@@ -8,7 +8,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getTeamDetail, submitTeamRegistration } from '@/api/team'
+import { submitTeamRegistration, getTeamDetail } from '@/api/team'
+import { uploadFile } from '@/api/upload'
+import { getCompetitionDetail } from '@/api/public'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -27,21 +29,34 @@ async function loadTeam() {
   loading.value = true
   try {
     const id = Number(route.params.id)
-    const data = await getTeamDetail(id)
-    team.value = data
-  } catch (e) {
-    team.value = {
-      id: Number(route.params.id),
-      title: '全国大学生数学建模竞赛',
-      category: '校级赛',
-      minMembers: 2,
-      maxMembers: 3,
-      currentCount: 2,
-      members: [
-        { realName: '张三', role: 'CAPTAIN' },
-        { realName: '李四', role: 'MEMBER' }
-      ]
+    const res: any = await getTeamDetail(id)
+    if (res && res.team) {
+      const t = res.team
+      let compTitle = ''
+      if (t.competitionId) {
+        try {
+          const comp: any = await getCompetitionDetail(t.competitionId)
+          compTitle = comp?.title || `竞赛 #${t.competitionId}`
+        } catch {
+          compTitle = `竞赛 #${t.competitionId}`
+        }
+      }
+      team.value = {
+        id: t.id,
+        title: t.teamName || '团队',
+        category: compTitle,
+        currentCount: res.members?.length || 0,
+        maxMembers: t.maxSize || 5,
+        members: (res.members || []).map((m: any) => ({
+          realName: m.realName || m.username || '成员',
+          role: m.userId === t.captainId ? 'CAPTAIN' : 'MEMBER'
+        }))
+      }
+    } else {
+      team.value = null
     }
+  } catch (e) {
+    team.value = null
   } finally {
     loading.value = false
   }
@@ -94,13 +109,18 @@ async function handleSubmit() {
   }
   submitting.value = true
   try {
-    await submitTeamRegistration({
-      teamId: team.value.id,
-      attachments: files.value.map((f) => f.name)
-    })
+    // 先上传文件
+    const uploadedUrls: string[] = []
+    for (const f of files.value) {
+      const url = await uploadFile(f.file, 'attachment')
+      uploadedUrls.push(url)
+    }
+    await submitTeamRegistration(
+      team.value.id,
+      undefined,
+      uploadedUrls.join(',')
+    )
     successVisible.value = true
-  } catch (e) {
-    // 错误已拦截
   } finally {
     submitting.value = false
   }
@@ -124,8 +144,8 @@ onMounted(() => {
       </button>
       <h1 class="page-title">高校学科竞赛报名管理系统</h1>
       <div class="user-mini">
-        <div class="avatar">{{ userStore.realName?.[0] || 'U' }}</div>
-        <span class="user-name">{{ userStore.realName || '用户' }}</span>
+        <div class="avatar">{{ userStore.user?.realName?.[0] || 'U' }}</div>
+        <span class="user-name">{{ userStore.user?.realName || '用户' }}</span>
       </div>
     </div>
 
@@ -145,9 +165,9 @@ onMounted(() => {
       <div class="info-card">
         <h2 class="team-title">{{ team.title }}</h2>
         <div class="team-meta">
-          <el-tag size="small" effect="plain" round>📋 比赛形式：{{ team.category }}</el-tag>
-          <el-tag size="small" effect="plain" type="info" round>👥 {{ team.currentCount }}/{{ team.maxMembers }}人</el-tag>
-          <el-tag size="small" effect="plain" type="warning" round>📋 待提交</el-tag>
+          <el-tag size="small" effect="plain" round>{{ team.category }}</el-tag>
+          <el-tag size="small" effect="plain" type="info" round>{{ team.currentCount }}/{{ team.maxMembers }}人</el-tag>
+          <el-tag size="small" effect="plain" type="warning" round>待提交</el-tag>
         </div>
       </div>
 
@@ -156,17 +176,17 @@ onMounted(() => {
         <p class="upload-tip">支持 PDF / DOC / DOCX / ZIP，单文件不超过 10MB</p>
 
         <div v-if="files.length === 0" class="upload-zone" @click="triggerUpload">
-          <div class="upload-icon">⬆</div>
+          <div class="upload-icon">↑</div>
           <p class="upload-text">点击或拖拽文件到此处上传</p>
         </div>
         <div v-else class="file-list">
           <div v-for="(f, i) in files" :key="i" class="file-item">
-            <div class="file-icon">📄</div>
+            <div class="file-icon">F</div>
             <div class="file-info">
               <p class="file-name">{{ f.name }}</p>
               <p class="file-size">{{ formatSize(f.size) }}</p>
             </div>
-            <button class="btn-remove" @click="removeFile">🗑</button>
+            <button class="btn-remove" @click="removeFile">删除</button>
           </div>
         </div>
 

@@ -7,8 +7,10 @@ import com.cms.common.exception.BusinessException;
 import com.cms.dto.TeamDTO;
 import com.cms.entity.Competition;
 import com.cms.entity.Team;
+import com.cms.entity.TeamAdvisor;
 import com.cms.entity.TeamMember;
 import com.cms.entity.TeamRegistration;
+import com.cms.entity.User;
 import com.cms.mapper.*;
 import com.cms.service.NotificationService;
 import com.cms.service.TeamService;
@@ -26,6 +28,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Autowired private CompetitionMapper competitionMapper;
     @Autowired private TeamRegistrationMapper teamRegistrationMapper;
     @Autowired private NotificationService notificationService;
+    @Autowired private UserMapper userMapper;
+    @Autowired private TeamAdvisorMapper teamAdvisorMapper;
 
     @Override
     @Transactional
@@ -33,12 +37,20 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         Competition comp = competitionMapper.selectById(dto.getCompetitionId());
         if (comp == null) throw new BusinessException("竞赛不存在");
         if (comp.getStatus() != 1) throw new BusinessException("竞赛未上架");
+        if (comp.getType() == null || comp.getType() != 2) throw new BusinessException("该竞赛不支持团队赛");
+        LocalDateTime now = LocalDateTime.now();
+        if (comp.getRegisterStart() != null && now.isBefore(comp.getRegisterStart()))
+            throw new BusinessException("报名尚未开始");
+        if (comp.getRegisterEnd() != null && now.isAfter(comp.getRegisterEnd()))
+            throw new BusinessException("报名已结束");
 
-        // 校验：当前用户是否已加入其他团队
-        Long count = teamMemberMapper.selectCount(new LambdaQueryWrapper<TeamMember>()
+        // 校验：同一竞赛只能当一个队的队长
+        Long captainCount = teamMemberMapper.selectCount(new LambdaQueryWrapper<TeamMember>()
             .eq(TeamMember::getUserId, captainId)
-            .eq(TeamMember::getStatus, 1));
-        if (count > 0) throw new BusinessException("您已加入其他团队");
+            .eq(TeamMember::getRole, 1)
+            .inSql(TeamMember::getTeamId,
+                "SELECT id FROM team WHERE competition_id = " + dto.getCompetitionId() + " AND is_deleted = 0 AND dissolved_at IS NULL"));
+        if (captainCount > 0) throw new BusinessException("您在该竞赛中已是其他团队的队长");
 
         Team team = new Team();
         team.setTeamName(dto.getTeamName());
@@ -59,6 +71,43 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         m.setJoinTime(LocalDateTime.now());
         teamMemberMapper.insert(m);
 
+        // 创建时邀请学生（待审核）
+        if (dto.getStudentIds() != null && !dto.getStudentIds().isEmpty()) {
+            for (Long studentId : dto.getStudentIds()) {
+                if (studentId.equals(captainId)) continue;
+                // 跳过已存在记录
+                Long existCount = teamMemberMapper.selectCount(new LambdaQueryWrapper<TeamMember>()
+                    .eq(TeamMember::getTeamId, team.getId())
+                    .eq(TeamMember::getUserId, studentId));
+                if (existCount > 0) continue;
+                TeamMember invited = new TeamMember();
+                invited.setTeamId(team.getId());
+                invited.setUserId(studentId);
+                invited.setRole(0);
+                invited.setStatus(0);
+                invited.setJoinTime(LocalDateTime.now());
+                teamMemberMapper.insert(invited);
+                notificationService.asyncNotify(studentId,
+                    "您被邀请加入团队「" + team.getTeamName() + "」，请前往我的团队查看", "TEAM");
+            }
+        }
+
+        // 创建时邀请指导老师（待审核）
+        if (dto.getTeacherId() != null) {
+            User teacher = userMapper.selectById(dto.getTeacherId());
+            if (teacher != null && "TEACHER".equals(teacher.getRole())) {
+                TeamAdvisor advisor = new TeamAdvisor();
+                advisor.setTeamId(team.getId());
+                advisor.setTeacherId(dto.getTeacherId());
+                advisor.setStatus(0);
+                advisor.setInvitedBy(captainId);
+                advisor.setInviteTime(LocalDateTime.now());
+                teamAdvisorMapper.insert(advisor);
+                notificationService.asyncNotify(dto.getTeacherId(),
+                    "团队「" + team.getTeamName() + "」邀请您担任指导老师，请前往指导邀请查看", "TEAM");
+            }
+        }
+
         return team;
     }
 
@@ -68,7 +117,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         Team team = this.getOne(new LambdaQueryWrapper<Team>().eq(Team::getInviteCode, inviteCode));
         if (team == null) throw new BusinessException("邀请码无效");
         if (team.getStatus() != 0) throw new BusinessException("团队已锁定");
-        if (team.getCaptainId().equals(userId)) throw new BusinessException("您是队长");
+        if (team.getDissolvedAt() != null) throw new BusinessException("团队已解散");
 
         // 重复检查
         Long count = teamMemberMapper.selectCount(new LambdaQueryWrapper<TeamMember>()
@@ -86,34 +135,43 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         m.setTeamId(team.getId());
         m.setUserId(userId);
         m.setRole(0);
-        m.setStatus(1);  // 直接通过，简化流程
+        m.setStatus(0);  // 待队长审核
         m.setJoinTime(LocalDateTime.now());
         teamMemberMapper.insert(m);
 
-        // 通知队长
-        notificationService.asyncNotify(team.getCaptainId(), "新成员加入了您的团队", "TEAM");
+        // 通知队长审核
+        notificationService.asyncNotify(team.getCaptainId(), "有新成员申请加入您的团队，请及时审核", "TEAM");
     }
 
     @Override
-    public Map<String, Object> getMyTeam(Long userId) {
-        TeamMember m = teamMemberMapper.selectOne(new LambdaQueryWrapper<TeamMember>()
+    public List<Map<String, Object>> getMyTeam(Long userId) {
+        List<TeamMember> memberships = teamMemberMapper.selectList(new LambdaQueryWrapper<TeamMember>()
             .eq(TeamMember::getUserId, userId)
-            .eq(TeamMember::getStatus, 1));
-        if (m == null) return Collections.emptyMap();
-        Team team = this.getById(m.getTeamId());
-        List<TeamMember> members = teamMemberMapper.selectList(new LambdaQueryWrapper<TeamMember>()
-            .eq(TeamMember::getTeamId, team.getId()));
-        Map<String, Object> map = new HashMap<>();
-        map.put("team", team);
-        map.put("members", members);
-        map.put("myRole", m.getRole());
-        return map;
+            .in(TeamMember::getStatus, 0, 1));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (TeamMember m : memberships) {
+            Team team = this.getById(m.getTeamId());
+            if (team == null || team.getDissolvedAt() != null) continue;
+            List<TeamMember> members = teamMemberMapper.selectList(new LambdaQueryWrapper<TeamMember>()
+                .eq(TeamMember::getTeamId, team.getId())
+                .eq(TeamMember::getStatus, 1));
+            Map<String, Object> map = new HashMap<>();
+            map.put("team", team);
+            map.put("members", members);
+            map.put("myRole", m.getRole());
+            map.put("memberStatus", m.getStatus());
+            result.add(map);
+        }
+        return result;
     }
 
     @Override
-    public void reviewMember(Long memberId, Boolean pass) {
+    public void reviewMember(Long memberId, Boolean pass, Long callerId) {
         TeamMember m = teamMemberMapper.selectById(memberId);
         if (m == null) throw new BusinessException("记录不存在");
+        Team team = this.getById(m.getTeamId());
+        if (team == null) throw new BusinessException("团队不存在");
+        if (!team.getCaptainId().equals(callerId)) throw new BusinessException("仅队长可审核成员");
         m.setStatus(pass ? 1 : 2);
         teamMemberMapper.updateById(m);
     }
@@ -124,6 +182,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         Team team = this.getById(teamId);
         if (team == null) throw new BusinessException("团队不存在");
         if (!team.getCaptainId().equals(operatorId)) throw new BusinessException("仅队长可踢出成员");
+        if (team.getCaptainId().equals(userId)) throw new BusinessException("队长不能踢出自己，请先转让队长");
         teamMemberMapper.delete(new LambdaQueryWrapper<TeamMember>()
             .eq(TeamMember::getTeamId, teamId)
             .eq(TeamMember::getUserId, userId));
@@ -136,6 +195,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         Team team = this.getById(teamId);
         if (team == null) throw new BusinessException("团队不存在");
         if (!team.getCaptainId().equals(oldCaptainId)) throw new BusinessException("仅队长可转让");
+
+        // 验证新队长是团队中的活跃成员
+        Long newCaptainMemberCount = teamMemberMapper.selectCount(new LambdaQueryWrapper<TeamMember>()
+            .eq(TeamMember::getTeamId, teamId)
+            .eq(TeamMember::getUserId, newCaptainId)
+            .eq(TeamMember::getStatus, 1));
+        if (newCaptainMemberCount == 0) throw new BusinessException("新队长必须是团队中的活跃成员");
 
         // 旧队长 -> 队员
         teamMemberMapper.update(new TeamMember(),
@@ -155,9 +221,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
 
     @Override
     @Transactional
-    public void submitTeamRegistration(Long teamId, String description, String attachment) {
+    public void submitTeamRegistration(Long teamId, String description, String attachment, Long callerId) {
         Team team = this.getById(teamId);
         if (team == null) throw new BusinessException("团队不存在");
+        if (!team.getCaptainId().equals(callerId)) throw new BusinessException("仅队长可提交团队报名");
         if (team.getStatus() != 0) throw new BusinessException("团队已提交");
 
         // 校验人数
@@ -185,6 +252,121 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         teamRegistrationMapper.insert(reg);
 
         team.setStatus(1);
+        this.updateById(team);
+    }
+
+    @Override
+    public Map<String, Object> getTeamDetail(Long teamId) {
+        Team team = this.getById(teamId);
+        if (team == null) return Collections.emptyMap();
+        List<TeamMember> members = teamMemberMapper.selectList(new LambdaQueryWrapper<TeamMember>()
+            .eq(TeamMember::getTeamId, teamId));
+        // 关联用户信息
+        List<Map<String, Object>> enrichedMembers = new ArrayList<>();
+        for (TeamMember m : members) {
+            User user = userMapper.selectById(m.getUserId());
+            Map<String, Object> mm = new HashMap<>();
+            mm.put("id", m.getId());
+            mm.put("userId", m.getUserId());
+            mm.put("role", m.getRole());
+            mm.put("status", m.getStatus());
+            mm.put("joinTime", m.getJoinTime());
+            if (user != null) {
+                mm.put("realName", user.getRealName());
+                mm.put("username", user.getUsername());
+                mm.put("college", user.getCollege());
+                mm.put("avatar", user.getAvatar());
+            }
+            enrichedMembers.add(mm);
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("team", team);
+        map.put("members", enrichedMembers);
+
+        // 指导老师信息
+        TeamAdvisor advisor = teamAdvisorMapper.selectOne(new LambdaQueryWrapper<TeamAdvisor>()
+            .eq(TeamAdvisor::getTeamId, teamId)
+            .eq(TeamAdvisor::getStatus, 1));
+        if (advisor != null) {
+            User teacher = userMapper.selectById(advisor.getTeacherId());
+            Map<String, Object> advisorMap = new HashMap<>();
+            advisorMap.put("id", advisor.getId());
+            advisorMap.put("teacherId", advisor.getTeacherId());
+            advisorMap.put("teacherName", teacher != null ? teacher.getRealName() : "未知");
+            advisorMap.put("teacherCollege", teacher != null ? teacher.getCollege() : "");
+            advisorMap.put("acceptTime", advisor.getAcceptTime());
+            map.put("advisor", advisorMap);
+        }
+        // 待审核的邀请
+        TeamAdvisor pendingInvite = teamAdvisorMapper.selectOne(new LambdaQueryWrapper<TeamAdvisor>()
+            .eq(TeamAdvisor::getTeamId, teamId)
+            .eq(TeamAdvisor::getStatus, 0));
+        if (pendingInvite != null) {
+            User teacher = userMapper.selectById(pendingInvite.getTeacherId());
+            Map<String, Object> pendingMap = new HashMap<>();
+            pendingMap.put("id", pendingInvite.getId());
+            pendingMap.put("teacherId", pendingInvite.getTeacherId());
+            pendingMap.put("teacherName", teacher != null ? teacher.getRealName() : "未知");
+            pendingMap.put("inviteTime", pendingInvite.getInviteTime());
+            map.put("pendingInvite", pendingMap);
+        }
+        return map;
+    }
+
+    @Override
+    @Transactional
+    public void quitTeam(Long teamId, Long userId) {
+        Team team = this.getById(teamId);
+        if (team == null) throw new BusinessException("团队不存在");
+        if (team.getCaptainId().equals(userId)) {
+            // 队长退出 → 检查是否有其他成员可接替
+            Long memberCount = teamMemberMapper.selectCount(new LambdaQueryWrapper<TeamMember>()
+                .eq(TeamMember::getTeamId, teamId)
+                .eq(TeamMember::getStatus, 1)
+                .ne(TeamMember::getUserId, userId));
+            if (memberCount > 0) {
+                throw new BusinessException("队长不能直接退出，请先转让队长");
+            }
+            // 无其他成员，删除团队
+            teamMemberMapper.delete(new LambdaQueryWrapper<TeamMember>()
+                .eq(TeamMember::getTeamId, teamId));
+            this.removeById(teamId);
+            return;
+        }
+        teamMemberMapper.delete(new LambdaQueryWrapper<TeamMember>()
+            .eq(TeamMember::getTeamId, teamId)
+            .eq(TeamMember::getUserId, userId));
+    }
+
+    @Override
+    @Transactional
+    public void dissolveTeam(Long teamId, Long userId) {
+        Team team = this.getById(teamId);
+        if (team == null) throw new BusinessException("团队不存在");
+        if (!team.getCaptainId().equals(userId)) {
+            throw new BusinessException("只有队长可以解散团队");
+        }
+        if (team.getDissolvedAt() != null) {
+            throw new BusinessException("团队已解散");
+        }
+        team.setDissolvedAt(LocalDateTime.now());
+        this.updateById(team);
+    }
+
+    @Override
+    @Transactional
+    public void recoverTeam(Long teamId, Long userId) {
+        Team team = this.getById(teamId);
+        if (team == null) throw new BusinessException("团队不存在");
+        if (team.getDissolvedAt() == null) throw new BusinessException("团队未被解散");
+        if (!team.getCaptainId().equals(userId)) {
+            throw new BusinessException("只有队长可以恢复团队");
+        }
+        LocalDateTime deadline = team.getDissolvedAt().plusHours(12);
+        if (LocalDateTime.now().isAfter(deadline)) {
+            throw new BusinessException("已超过12小时恢复期限，无法恢复");
+        }
+        team.setDissolvedAt(null);
         this.updateById(team);
     }
 

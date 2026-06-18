@@ -8,6 +8,7 @@ import com.cms.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
@@ -17,12 +18,12 @@ public class AuthController {
     @Autowired private UserService userService;
 
     @PostMapping("/login")
-    public Result<Map<String, Object>> login(@RequestBody LoginDTO dto) {
+    public Result<Map<String, Object>> login(@Valid @RequestBody LoginDTO dto) {
         return Result.success(userService.login(dto));
     }
 
     @PostMapping("/register")
-    public Result register(@RequestBody RegisterDTO dto) {
+    public Result register(@Valid @RequestBody RegisterDTO dto) {
         userService.register(dto);
         return Result.success();
     }

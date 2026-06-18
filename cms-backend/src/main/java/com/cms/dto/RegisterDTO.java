@@ -10,6 +10,6 @@ public class RegisterDTO {
     @NotBlank @Size(min = 6, max = 20) private String password;
     private String nickname;
     private String realName;
-    private String school;
+    private String college;
     private String phone;
 }

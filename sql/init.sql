@@ -153,27 +153,45 @@ CREATE TABLE `team_log` (
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 11. 团队指导老师邀请
+CREATE TABLE `team_advisor` (
+  `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+  `team_id` BIGINT NOT NULL COMMENT '团队ID',
+  `teacher_id` BIGINT NOT NULL COMMENT '教师用户ID',
+  `status` TINYINT DEFAULT 0 COMMENT '0待审核 1已接受 2已拒绝',
+  `invited_by` BIGINT COMMENT '邀请人(队长)userId',
+  `invite_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '邀请时间',
+  `accept_time` DATETIME COMMENT '接受时间',
+  `reject_time` DATETIME COMMENT '拒绝时间',
+  `remark` VARCHAR(500) COMMENT '邀请备注',
+  INDEX idx_team (team_id),
+  INDEX idx_teacher (teacher_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- =====================================================
 -- 测试数据（密码统一为 123456）
--- BCrypt: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- BCrypt: $2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu
 -- =====================================================
-INSERT INTO `user`(username,password,nickname,real_name,role,school,phone) VALUES
-('admin',   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '超级管理员', '管理员',  'ADMIN',   'XX大学', '13800000000'),
-('teacher1','$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '张老师',     '张老师',  'TEACHER', 'XX大学', '13800000001'),
-('teacher2','$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '李老师',     '李老师',  'TEACHER', 'XX大学', '13800000002'),
-('stu1',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '小明',       '王小明',  'STUDENT', 'XX大学', '13800000003'),
-('stu2',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '小红',       '李小红',  'STUDENT', 'XX大学', '13800000004'),
-('stu3',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '小华',       '张小华',  'STUDENT', 'XX大学', '13800000005');
+INSERT INTO `user`(username,password,nickname,real_name,role,school,phone,avatar) VALUES
+('admin',   '$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '超级管理员', '管理员',  'ADMIN',   'XX大学', '13800000000', '/images/avatars/avatar1.png'),
+('teacher1','$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '张老师',     '张老师',  'TEACHER', 'XX大学', '13800000001', '/images/avatars/avatar2.png'),
+('teacher2','$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '李老师',     '李老师',  'TEACHER', 'XX大学', '13800000002', '/images/avatars/avatar3.png'),
+('stu1',    '$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '小明',       '王小明',  'STUDENT', 'XX大学', '13800000003', '/images/avatars/avatar4.png'),
+('stu2',    '$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '小红',       '李小红',  'STUDENT', 'XX大学', '13800000004', '/images/avatars/avatar5.png'),
+('stu3',    '$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '小华',       '张小华',  'STUDENT', 'XX大学', '13800000005', '/images/avatars/avatar6.png');
 
-INSERT INTO `competition`(title,description,category,type,max_team_size,min_team_size,register_start,register_end,publisher_id,teacher_id,status) VALUES
-('全国大学生数学建模竞赛', '全国性数学建模赛事，欢迎组队参加', '学科竞赛', 2, 3, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 1, 2, 1),
-('互联网+创新创业大赛',     '创新创业大赛，个人赛',          '创新创业', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 1, 3, 1),
-('ACM 程序设计竞赛',        '编程类团队赛，每队 3 人',      '学科竞赛', 2, 3, 2, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 1, 2, 1),
-('英语演讲比赛',            '个人赛，提升英语表达',          '文体艺术', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 1, 2, 0);
+INSERT INTO `competition`(title,description,category,type,max_team_size,min_team_size,register_start,register_end,cover,publisher_id,teacher_id,status) VALUES
+('全国大学生数学建模竞赛', '全国性数学建模赛事，欢迎组队参加', '学科竞赛', 2, 3, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover1.png', 1, 2, 1),
+('互联网+创新创业大赛',     '创新创业大赛，个人赛',          '创新创业', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover2.png', 1, 3, 1),
+('ACM 程序设计竞赛',        '编程类团队赛，每队 3 人',      '学科竞赛', 2, 3, 2, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover3.png', 1, 2, 1),
+('英语演讲比赛',            '个人赛，提升英语表达',          '文体艺术', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover4.png', 1, 2, 0);
 
 INSERT INTO `banner`(title,image_url,link_url,sort,status) VALUES
-('数学建模竞赛火热报名中', 'https://placehold.co/1200x400/4A90E2/fff?text=Math+Modeling', '/competition/1', 1, 1),
-('互联网+大赛启动',         'https://placehold.co/1200x400/67C23A/fff?text=Internet+',    '/competition/2', 2, 1);
+('数学建模竞赛火热报名中', '/images/banners/banner1.png', '/competitions/1', 1, 1),
+('互联网+大赛启动',         '/images/banners/banner2.png', '/competitions/2', 2, 1),
+('ACM程序设计竞赛',         '/images/banners/banner3.png', '/competitions/3', 3, 1),
+('英语演讲比赛',            '/images/banners/banner4.png', '/competitions/4', 4, 1),
+('创新创业大赛等你来',       '/images/banners/banner5.png', '/competitions/2', 5, 1);
 
 INSERT INTO `hot_recommend`(competition_id,sort) VALUES
 (1, 100),

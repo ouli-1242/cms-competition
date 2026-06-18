@@ -11,7 +11,6 @@ import com.cms.mapper.RegistrationMapper;
 import com.cms.mapper.TeamRegistrationMapper;
 import com.cms.service.HotRecommendService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +24,6 @@ public class HotRecommendServiceImpl implements HotRecommendService {
     @Autowired private CompetitionMapper competitionMapper;
     @Autowired private RegistrationMapper registrationMapper;
     @Autowired private TeamRegistrationMapper teamRegistrationMapper;
-    @Autowired private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public void add(Long competitionId, Integer sort) {
@@ -40,25 +38,20 @@ public class HotRecommendServiceImpl implements HotRecommendService {
             h.setSort(sort);
             hotMapper.updateById(h);
         }
-        redisTemplate.delete("home:hot");
     }
 
     @Override
     public void cancel(Long competitionId) {
         hotMapper.delete(new LambdaQueryWrapper<HotRecommend>()
             .eq(HotRecommend::getCompetitionId, competitionId));
-        redisTemplate.delete("home:hot");
     }
 
     @Override
     @Transactional
     public void autoRecommend(Integer topN) {
-        // 1. 清空手动
         hotMapper.delete(new LambdaQueryWrapper<>());
-        // 2. 查报名数 Top N
         List<Competition> comps = competitionMapper.selectList(new LambdaQueryWrapper<Competition>()
-            .eq(Competition::getStatus, 1)
-            .eq(Competition::getIsDeleted, 0));
+            .eq(Competition::getStatus, 1));
         comps.sort((a, b) -> {
             long ca = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                     .eq(Registration::getCompetitionId, a.getId()))
@@ -76,26 +69,20 @@ public class HotRecommendServiceImpl implements HotRecommendService {
             h.setSort(topN - i);
             hotMapper.insert(h);
         }
-        redisTemplate.delete("home:hot");
     }
 
     @Override
     public List<Competition> listRecommend() {
-        // 1. 查缓存
-        Object cached = redisTemplate.opsForValue().get("home:hot");
-        if (cached instanceof List) return (List<Competition>) cached;
-
-        // 2. 查 hot 表
         List<HotRecommend> hots = hotMapper.selectList(new LambdaQueryWrapper<HotRecommend>()
             .orderByDesc(HotRecommend::getSort));
         List<Long> compIds = hots.stream().map(HotRecommend::getCompetitionId).collect(Collectors.toList());
         if (compIds.isEmpty()) return Collections.emptyList();
 
-        List<Competition> comps = competitionMapper.selectBatchIds(compIds);
+        List<Competition> comps = competitionMapper.selectList(new LambdaQueryWrapper<Competition>()
+            .in(Competition::getId, compIds)
+            .eq(Competition::getStatus, 1)
+            .eq(Competition::getIsDeleted, 0));
         Map<Long, Competition> map = comps.stream().collect(Collectors.toMap(Competition::getId, c -> c));
-        List<Competition> result = compIds.stream().map(map::get).filter(Objects::nonNull).collect(Collectors.toList());
-
-        redisTemplate.opsForValue().set("home:hot", result, 5, java.util.concurrent.TimeUnit.MINUTES);
-        return result;
+        return compIds.stream().map(map::get).filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

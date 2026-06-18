@@ -10,8 +10,10 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { View, Hide, Lock } from '@element-plus/icons-vue'
 import { changePassword } from '@/api/auth'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const form = reactive({
   oldPassword: '',
@@ -83,15 +85,11 @@ async function handleSubmit() {
   if (!validate()) return
   saving.value = true
   try {
-    await changePassword({
-      oldPassword: form.oldPassword,
-      newPassword: form.newPassword
-    })
+    await changePassword(form.oldPassword, form.newPassword)
     ElMessage.success('密码修改成功，请重新登录')
     setTimeout(() => {
       // 退出登录
-      localStorage.removeItem('cms_token')
-      localStorage.removeItem('cms_user')
+      userStore.logout()
       router.push('/login')
     }, 1000)
   } catch (e) {
@@ -104,23 +102,6 @@ async function handleSubmit() {
 
 <template>
   <div class="pwd-page">
-    <!-- 顶部返回栏 -->
-    <div class="page-header">
-      <button class="back-btn" @click="router.back()">
-        <span>←</span>
-      </button>
-      <h1 class="page-title">校园活动管理平台</h1>
-      <div class="user-mini">
-        <div class="avatar">U</div>
-        <span class="user-name">用户</span>
-      </div>
-    </div>
-
-    <!-- 返回链接 -->
-    <div class="back-link" @click="router.push('/student/profile')">
-      <span class="back-icon">←</span>返回个人中心
-    </div>
-
     <!-- 卡片 -->
     <div class="pwd-card">
       <h2 class="card-title">修改密码</h2>
@@ -218,90 +199,6 @@ async function handleSubmit() {
   max-width: 1280px;
   margin: 0 auto;
   padding: $space-4 $space-6 $space-8;
-}
-
-// ===== 顶部栏 =====
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-2 0 $space-3;
-}
-
-.back-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: $bg-card;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: $text-regular;
-  box-shadow: $shadow-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all $transition-fast;
-
-  &:hover {
-    background: $primary-50;
-    color: $primary;
-  }
-}
-
-.page-title {
-  margin: 0;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-}
-
-.user-mini {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-1 $space-3;
-  background: $bg-card;
-  border-radius: $radius-full;
-  box-shadow: $shadow-sm;
-}
-
-.user-mini .avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $primary, $primary-hover);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
-
-.user-mini .user-name {
-  font-size: $font-size-sm;
-  color: $text-primary;
-}
-
-// ===== 返回链接 =====
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0 0 $space-3;
-  font-size: $font-size-sm;
-  color: $text-secondary;
-  cursor: pointer;
-  transition: color $transition-fast;
-
-  &:hover {
-    color: $primary;
-  }
-}
-
-.back-icon {
-  font-size: 16px;
 }
 
 // ===== 卡片 =====
@@ -462,9 +359,6 @@ async function handleSubmit() {
 @media (max-width: 768px) {
   .pwd-page {
     padding: $space-3 $space-4;
-  }
-  .user-mini .user-name {
-    display: none;
   }
 }
 </style>

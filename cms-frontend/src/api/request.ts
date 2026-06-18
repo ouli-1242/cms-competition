@@ -32,7 +32,7 @@ instance.interceptors.response.use(
   (response) => {
     const res = response.data as Result
     if (res.code === 200) {
-      return res.data
+      return res.data as any
     }
     // 业务错误
     ElMessage.error(res.message || '请求失败')

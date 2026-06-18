@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/admin/competition")
 @PreAuthorize("hasRole('ADMIN')")
@@ -24,22 +26,24 @@ public class AdminCompetitionController {
         @RequestParam(defaultValue = "1") Integer pageNum,
         @RequestParam(defaultValue = "10") Integer pageSize,
         @RequestParam(required = false) String keyword,
-        @RequestParam(required = false) Integer status) {
+        @RequestParam(required = false) Integer status,
+        @RequestParam(required = false) Integer type) {
         Page<Competition> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Competition> wrapper = new LambdaQueryWrapper<>();
         if (keyword != null && !keyword.isEmpty()) wrapper.like(Competition::getTitle, keyword);
         if (status  != null) wrapper.eq(Competition::getStatus, status);
+        if (type    != null) wrapper.eq(Competition::getType, type);
         wrapper.orderByDesc(Competition::getCreateTime);
         return Result.success(compService.page(page, wrapper));
     }
 
     @PostMapping
-    public Result<Competition> publish(@RequestBody CompetitionDTO dto) {
+    public Result<Competition> publish(@Valid @RequestBody CompetitionDTO dto) {
         return Result.success(competitionService.publish(dto, SecurityUtil.currentUserId()));
     }
 
     @PutMapping("/{id}")
-    public Result update(@PathVariable Long id, @RequestBody CompetitionDTO dto) {
+    public Result update(@PathVariable Long id, @Valid @RequestBody CompetitionDTO dto) {
         competitionService.updateCompetition(id, dto);
         return Result.success();
     }

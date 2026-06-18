@@ -6,17 +6,28 @@
  * - 热门竞赛
  * - 最新竞赛
  */
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getActiveBanners, getActiveHot, getCompetitions } from '@/api/public'
-import type { Banner, Competition } from '@/api/public'
+import { ElMessage } from 'element-plus'
+import { getCompetitions, getActiveBanners, getActiveHot } from '@/api/public'
+import type { Competition } from '@/api/public'
 
 const router = useRouter()
 
 // ====== 数据 ======
-const banner = ref<Banner | null>(null)
+const heroCompetitions = ref<Competition[]>([])
+const currentHeroIndex = ref(0)
+let heroTimer: ReturnType<typeof setInterval> | null = null
+
 const hotList = ref<Competition[]>([])
 const latestList = ref<Competition[]>([])
+const loading = ref(false)
+
+/** 从 banner linkUrl 中提取竞赛 ID，如 /competitions/123 → 123 */
+function extractIdFromUrl(url: string): number {
+  const match = url.match(/\/competitions\/(\d+)/)
+  return match ? Number(match[1]) : 0
+}
 
 // ====== 搜索筛选 ======
 const filters = ref({
@@ -47,72 +58,124 @@ function onSearch() {
     query: {
       keyword: filters.value.keyword || undefined,
       category: filters.value.category || undefined,
-      status: filters.value.status || undefined
+      status: filters.value.status !== '' ? filters.value.status : undefined
     }
   })
 }
 
 // ====== 加载数据 ======
 async function loadData() {
+  loading.value = true
   try {
-    // 加载首张轮播图作为 Hero
-    const banners = (await getActiveBanners()) || []
-    banner.value = banners[0] || null
+    // 并行加载三个数据源
+    const [bannerRes, hotRes, latestRes] = await Promise.all([
+      getActiveBanners().catch(() => null),
+      getActiveHot().catch(() => []),
+      getCompetitions({ pageNum: 1, pageSize: 9, excludeEnded: true }).catch(() => null)
+    ])
 
-    // 热门
-    const hotRes: any = await getCompetitions({ page: 1, size: 6, status: 1 })
-    hotList.value = hotRes.list || []
+    // 热门竞赛
+    const hotData: Competition[] = Array.isArray(hotRes) ? hotRes : (hotRes as any)?.records || []
+    hotList.value = hotData
 
-    // 最新
-    const latestRes: any = await getCompetitions({ page: 1, size: 8 })
-    latestList.value = latestRes.list || []
-  } catch (e) {
-    // 静默失败，使用占位
+    // Hero 轮播：优先使用 banner，没有则用热门竞赛
+    const banners = Array.isArray(bannerRes) ? bannerRes : (bannerRes as any) || []
+    if (banners && banners.length > 0) {
+      heroCompetitions.value = banners.slice(0, 5).map((b: any) => ({
+        id: b.linkUrl ? extractIdFromUrl(b.linkUrl) : 0,
+        title: b.title,
+        category: '',
+        type: 1,
+        cover: b.imageUrl || '',
+        description: '',
+        registerStart: '',
+        registerEnd: '',
+        compStart: '',
+        compEnd: '',
+        maxTeamSize: 0,
+        status: 1,
+        registrationCount: 0
+      }))
+    } else {
+      heroCompetitions.value = hotData
+    }
+
+    if (heroCompetitions.value.length > 1) {
+      startHeroRotation()
+    }
+
+    // 最新竞赛（按 createTime 排序）
+    const latestData: any = latestRes
+    latestList.value = latestData?.records || []
+  } catch (e: any) {
+    ElMessage.error('加载首页数据失败：' + (e?.message || '未知错误'))
+  } finally {
+    loading.value = false
   }
 }
 
-// ====== 占位数据（API 未通时）======
-const placeholderHot: Competition[] = [
-  { id: 1, title: '全国大学生数学建模竞赛', category: '数学建模', organizer: '教育部', registerStart: '2026-06-01', registerEnd: '2026-06-30', contestTime: '2026-09-15', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 2, title: 'ACM 国际大学生程序设计竞赛', category: '程序设计', organizer: 'ACM 中国', registerStart: '2026-05-01', registerEnd: '2026-07-15', contestTime: '2026-10-20', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 3, title: '全国大学生电子设计竞赛', category: '电子设计', organizer: '教育部', registerStart: '2026-06-15', registerEnd: '2026-08-10', contestTime: '2026-08-30', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 4, title: '全国大学生英语竞赛', category: '英语竞赛', organizer: '外语教学协会', registerStart: '2026-04-01', registerEnd: '2026-05-15', contestTime: '2026-05-25', maxTeamSize: 1, status: 1, cover: '', description: '' },
-  { id: 5, title: '"挑战杯"全国大学生创业计划竞赛', category: '挑战杯', organizer: '团中央', registerStart: '2026-07-01', registerEnd: '2026-08-30', contestTime: '2026-11-15', maxTeamSize: 8, status: 1, cover: '', description: '' },
-  { id: 6, title: '中国机器人大赛', category: '机械创新', organizer: '中国自动化学会', registerStart: '2026-06-01', registerEnd: '2026-07-31', contestTime: '2026-10-15', maxTeamSize: 5, status: 1, cover: '', description: '' }
-]
+// ====== Hero 轮播 ======
+function startHeroRotation() {
+  heroTimer = setInterval(() => {
+    currentHeroIndex.value = (currentHeroIndex.value + 1) % heroCompetitions.value.length
+  }, 5000)
+}
 
-const placeholderLatest: Competition[] = [
-  { id: 7, title: '全国大学生广告艺术大赛', category: '文化创意', organizer: '教育部', registerStart: '2026-06-01', registerEnd: '2026-07-15', contestTime: '2026-09-10', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 8, title: '全国大学生物理竞赛', category: '物理', organizer: '物理学会', registerStart: '2026-05-15', registerEnd: '2026-06-30', contestTime: '2026-08-15', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 9, title: '全国大学生化学竞赛', category: '化学', organizer: '化学学会', registerStart: '2026-05-01', registerEnd: '2026-06-20', contestTime: '2026-07-25', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 10, title: '全国大学生生物竞赛', category: '生物', organizer: '生物学会', registerStart: '2026-06-01', registerEnd: '2026-07-10', contestTime: '2026-08-20', maxTeamSize: 3, status: 1, cover: '', description: '' },
-  { id: 11, title: '全国大学生市场调查与分析大赛', category: '经管', organizer: '教育部', registerStart: '2026-04-15', registerEnd: '2026-06-15', contestTime: '2026-07-30', maxTeamSize: 5, status: 1, cover: '', description: '' },
-  { id: 12, title: '全国大学生交通科技大赛', category: '交通', organizer: '交通部', registerStart: '2026-05-10', registerEnd: '2026-06-25', contestTime: '2026-07-15', maxTeamSize: 5, status: 1, cover: '', description: '' }
-]
+function switchHero(index: number) {
+  currentHeroIndex.value = index
+  if (heroTimer) clearInterval(heroTimer)
+  if (heroCompetitions.value.length > 1) startHeroRotation()
+}
 
-onMounted(() => {
-  loadData()
+function prevHero() {
+  const len = heroCompetitions.value.length
+  if (len <= 1) return
+  switchHero((currentHeroIndex.value - 1 + len) % len)
+}
+
+function nextHero() {
+  const len = heroCompetitions.value.length
+  if (len <= 1) return
+  switchHero((currentHeroIndex.value + 1) % len)
+}
+
+onUnmounted(() => {
+  if (heroTimer) clearInterval(heroTimer)
 })
+
+// 当前显示的 Hero 竞赛
+const currentHero = ref<Competition | null>(null)
+
+watch(currentHeroIndex, (idx) => {
+  currentHero.value = heroCompetitions.value[idx] || null
+}, { immediate: true })
 
 // 渲染用
 const displayHot = ref<Competition[]>([])
 const displayLatest = ref<Competition[]>([])
-onMounted(() => {
-  // 当 API 加载完毕后，替换占位
-  setTimeout(() => {
-    if (hotList.value.length === 0) displayHot.value = placeholderHot
-    else displayHot.value = hotList.value
 
-    if (latestList.value.length === 0) displayLatest.value = placeholderLatest
-    else displayLatest.value = latestList.value
-  }, 200)
+onMounted(async () => {
+  await loadData()
+  currentHero.value = heroCompetitions.value[currentHeroIndex.value] || null
+  displayHot.value = hotList.value
+  displayLatest.value = latestList.value
 })
 
 // 状态标签
-function statusText(s?: number) {
+function computeStatus(c: Competition): number {
+  const now = Date.now()
+  const start = c.registerStart ? new Date(c.registerStart).getTime() : 0
+  const end = c.registerEnd ? new Date(c.registerEnd).getTime() : 0
+  if (now < start) return 0   // 即将开始
+  if (now > end) return 2     // 已截止
+  return 1                     // 报名中
+}
+function statusText(c: Competition) {
+  const s = computeStatus(c)
   return s === 1 ? '报名中' : s === 2 ? '已截止' : '即将开始'
 }
-function statusType(s?: number) {
+function statusType(c: Competition) {
+  const s = computeStatus(c)
   return s === 1 ? 'success' : s === 2 ? 'info' : 'warning'
 }
 
@@ -134,9 +197,9 @@ function coverStyle(title: string) {
 </script>
 
 <template>
-  <div class="home">
+  <div class="home" v-loading="loading">
     <!-- ====== Hero 区域 ====== -->
-    <section class="hero">
+    <section class="hero" :style="currentHero?.cover ? { backgroundImage: `url(${currentHero.cover})` } : undefined">
       <div class="hero-bg">
         <div class="hero-circle hero-circle-1"></div>
         <div class="hero-circle hero-circle-2"></div>
@@ -144,21 +207,33 @@ function coverStyle(title: string) {
       </div>
       <div class="hero-content">
         <h1 class="hero-title">
-          {{ banner?.title || '2026 全国大学生数学建模竞赛' }}
+          {{ currentHero?.title || '2026 全国大学生数学建模竞赛' }}
         </h1>
         <p class="hero-subtitle">
-          <span class="dot"></span>
-          报名火热进行中（截止日期：2026年6月30日）
-          <span class="dot"></span>
+          <span class="hero-dot"></span>
+          {{ currentHero?.category || '数学建模' }}
+          <span class="hero-dot"></span>
+          {{ currentHero ? statusText(currentHero) : '报名中' }}
+          <span class="hero-dot"></span>
+          {{ currentHero?.registrationCount ?? 0 }}{{ currentHero?.type === 2 ? '队' : '人' }}参赛
         </p>
         <div class="hero-dots">
-          <span class="dot active"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
+          <span
+            v-for="(_, idx) in (heroCompetitions.length > 0 ? heroCompetitions : [1,2,3,4])"
+            :key="idx"
+            class="dot"
+            :class="{ active: currentHeroIndex === idx }"
+            @click="heroCompetitions.length > 0 && switchHero(idx)"
+          ></span>
         </div>
-        <button class="hero-btn" @click="router.push('/competitions/1')">立即报名</button>
+        <button class="hero-btn" @click="router.push(currentHero?.id ? `/competitions/${currentHero.id}` : '/competitions/1')">查看详情</button>
       </div>
+      <button v-if="heroCompetitions.length > 1" class="hero-arrow hero-arrow-left" @click="prevHero">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button v-if="heroCompetitions.length > 1" class="hero-arrow hero-arrow-right" @click="nextHero">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </section>
 
     <!-- ====== 搜索筛选 ====== -->
@@ -219,19 +294,20 @@ function coverStyle(title: string) {
           :lg="8"
         >
           <div class="comp-card" @click="router.push(`/competitions/${c.id}`)">
-            <div class="comp-cover" :style="coverStyle(c.title)">
-              <span class="cover-text">{{ c.title.slice(0, 2) }}</span>
+            <div class="comp-cover" :style="c.cover ? undefined : coverStyle(c.title)">
+              <img v-if="c.cover" :src="c.cover" :alt="c.title" class="cover-img" />
+              <span v-else class="cover-text">{{ c.title.slice(0, 2) }}</span>
             </div>
             <div class="comp-body">
               <h3 class="comp-title">{{ c.title }}</h3>
               <div class="comp-tags">
                 <el-tag size="small" effect="plain" round class="cat-tag">{{ c.category }}</el-tag>
-                <el-tag size="small" :type="statusType(c.status)" effect="plain" round class="status-tag">
-                  {{ statusText(c.status) }}
+                <el-tag size="small" :type="statusType(c)" effect="plain" round class="status-tag">
+                  {{ statusText(c) }}
                 </el-tag>
               </div>
               <div class="comp-footer">
-                <span class="comp-people">👥 {{ 1024 + c.id * 8 }}人</span>
+                <span class="comp-people">{{ c.registrationCount ?? 0 }}{{ c.type === 2 ? '队' : '人' }}参赛</span>
               </div>
             </div>
           </div>
@@ -260,19 +336,20 @@ function coverStyle(title: string) {
           :lg="8"
         >
           <div class="comp-card" @click="router.push(`/competitions/${c.id}`)">
-            <div class="comp-cover" :style="coverStyle(c.title)">
-              <span class="cover-text">{{ c.title.slice(0, 2) }}</span>
+            <div class="comp-cover" :style="c.cover ? undefined : coverStyle(c.title)">
+              <img v-if="c.cover" :src="c.cover" :alt="c.title" class="cover-img" />
+              <span v-else class="cover-text">{{ c.title.slice(0, 2) }}</span>
             </div>
             <div class="comp-body">
               <h3 class="comp-title">{{ c.title }}</h3>
               <div class="comp-tags">
                 <el-tag size="small" effect="plain" round class="cat-tag">{{ c.category }}</el-tag>
-                <el-tag size="small" :type="statusType(c.status)" effect="plain" round class="status-tag">
-                  {{ statusText(c.status) }}
+                <el-tag size="small" :type="statusType(c)" effect="plain" round class="status-tag">
+                  {{ statusText(c) }}
                 </el-tag>
               </div>
               <div class="comp-footer">
-                <span class="comp-people">👥 {{ 856 + c.id * 11 }}人</span>
+                <span class="comp-people">{{ c.registrationCount ?? 0 }}{{ c.type === 2 ? '队' : '人' }}参赛</span>
               </div>
             </div>
           </div>
@@ -297,6 +374,8 @@ function coverStyle(title: string) {
   height: 280px;
   border-radius: $radius-md;
   background: linear-gradient(135deg, #2b6cb0 0%, #3182ce 50%, #4299e1 100%);
+  background-size: cover;
+  background-position: center;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -360,7 +439,7 @@ function coverStyle(title: string) {
   gap: $space-2;
   opacity: 0.95;
 
-  .dot {
+  .hero-dot {
     width: 4px;
     height: 4px;
     border-radius: 50%;
@@ -411,6 +490,41 @@ function coverStyle(title: string) {
   &:active {
     transform: scale(0.97);
   }
+}
+
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-50%) scale(1.1);
+  }
+  &:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+}
+
+.hero-arrow-left {
+  left: $space-4;
+}
+
+.hero-arrow-right {
+  right: $space-4;
 }
 
 // ====== 搜索筛选 ======
@@ -554,6 +668,14 @@ function coverStyle(title: string) {
 .cover-text {
   position: relative;
   z-index: 1;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
 }
 
 .comp-body {

@@ -8,6 +8,7 @@ import com.cms.dto.LoginDTO;
 import com.cms.dto.RegisterDTO;
 import com.cms.entity.User;
 import com.cms.mapper.UserMapper;
+import com.cms.service.LoginRateLimitService;
 import com.cms.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,15 +24,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private LoginRateLimitService loginRateLimitService;
 
     @Override
     public Map<String, Object> login(LoginDTO dto) {
+        loginRateLimitService.checkRateLimit(dto.getUsername());
         User u = this.getOne(new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername()));
         if (u == null) throw new BusinessException("用户不存在");
         if (u.getIsDeleted() != null && u.getIsDeleted() == 1) throw new BusinessException("账号已禁用");
         if (!passwordEncoder.matches(dto.getPassword(), u.getPassword())) {
+            loginRateLimitService.recordFailure(dto.getUsername());
             throw new BusinessException("密码错误");
         }
+        loginRateLimitService.clearFailure(dto.getUsername());
         String token = jwtUtil.generate(u.getId(), u.getRole());
         u.setPassword(null);
         Map<String, Object> map = new HashMap<>();
@@ -50,7 +56,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         u.setPassword(passwordEncoder.encode(dto.getPassword()));
         u.setNickname(dto.getNickname());
         u.setRealName(dto.getRealName());
-        u.setSchool(dto.getSchool());
+        u.setCollege(dto.getCollege());
         u.setPhone(dto.getPhone());
         u.setRole("STUDENT");
         this.save(u);
@@ -69,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         u.setId(userId);
         u.setNickname(user.getNickname());
         u.setRealName(user.getRealName());
-        u.setSchool(user.getSchool());
+        u.setCollege(user.getCollege());
         u.setPhone(user.getPhone());
         u.setEmail(user.getEmail());
         u.setAvatar(user.getAvatar());

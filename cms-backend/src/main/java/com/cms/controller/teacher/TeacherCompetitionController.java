@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/teacher/competition")
 @PreAuthorize("hasRole('TEACHER')")
@@ -41,7 +43,7 @@ public class TeacherCompetitionController {
     public Result<Competition> detail(@PathVariable Long id) {
         Competition c = compService.getById(id);
         if (c == null) return Result.error("竞赛不存在");
-        if (!c.getTeacherId().equals(SecurityUtil.currentUserId())) {
+        if (!Objects.equals(c.getTeacherId(), SecurityUtil.currentUserId())) {
             return Result.error(403, "您不是该竞赛的指导老师");
         }
         return Result.success(c);

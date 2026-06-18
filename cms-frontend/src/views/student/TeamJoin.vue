@@ -1,13 +1,11 @@
 <script setup lang="ts">
 /**
  * 加入团队页
- * - 选择竞赛
  * - 输入 6 位邀请码
  * - 提交申请，等待队长审核
  */
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getCompetitionDetail } from '@/api/public'
 import { joinTeam } from '@/api/team'
 import { useUserStore } from '@/stores/user'
 
@@ -15,32 +13,12 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const competition = ref<any>(null)
 const loading = ref(false)
 const inviteCode = ref('')
 const submitting = ref(false)
 const error = ref('')
 
 const successVisible = ref(false)
-
-async function loadCompetition() {
-  loading.value = true
-  try {
-    const data = await getCompetitionDetail(Number(route.query.competitionId))
-    competition.value = data
-  } catch (e) {
-    competition.value = {
-      id: Number(route.query.competitionId),
-      title: '全国大学生数学建模竞赛',
-      type: '团体赛',
-      category: '校级赛',
-      minMembers: 2,
-      maxMembers: 3
-    }
-  } finally {
-    loading.value = false
-  }
-}
 
 async function handleJoin() {
   if (!userStore.isLoggedIn) {
@@ -58,10 +36,7 @@ async function handleJoin() {
   }
   submitting.value = true
   try {
-    await joinTeam({
-      competitionId: competition.value.id,
-      inviteCode: inviteCode.value.trim().toUpperCase()
-    })
+    await joinTeam(inviteCode.value.trim().toUpperCase())
     successVisible.value = true
   } catch (e: any) {
     if (e?.message?.includes('不存在') || e?.code === 'INVITE_NOT_FOUND') {
@@ -87,10 +62,6 @@ function onSuccessClose() {
 function onInput() {
   inviteCode.value = inviteCode.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
 }
-
-onMounted(() => {
-  loadCompetition()
-})
 </script>
 
 <template>
@@ -102,8 +73,8 @@ onMounted(() => {
       </button>
       <h1 class="page-title">高校学科竞赛报名管理系统</h1>
       <div class="user-mini" v-if="userStore.isLoggedIn">
-        <div class="avatar">{{ userStore.realName?.[0] || 'U' }}</div>
-        <span class="user-name">{{ userStore.realName || '用户' }}</span>
+        <div class="avatar">{{ userStore.user?.realName?.[0] || 'U' }}</div>
+        <span class="user-name">{{ userStore.user?.realName || '用户' }}</span>
       </div>
       <div v-else class="placeholder"></div>
     </div>
@@ -121,24 +92,8 @@ onMounted(() => {
     <div class="join-card">
       <h2 class="card-title">加入团队</h2>
 
-      <div v-if="loading" class="loading">
-        <el-skeleton :rows="3" animated />
-      </div>
-
-      <template v-else>
-        <div class="form-section">
-          <h3 class="section-title">竞赛信息</h3>
-          <div class="form-item">
-            <label class="form-label">选择竞赛</label>
-            <div class="form-input readonly">
-              <span class="value">✅ {{ competition?.title || '全国大学生数学建模竞赛' }}</span>
-            </div>
-            <p class="form-tip">{{ competition?.category || '校级赛' }} · {{ competition?.minMembers || 2 }}-{{ competition?.maxMembers || 3 }} 人</p>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h3 class="section-title">团队邀请码</h3>
+      <div class="form-section">
+        <h3 class="section-title">团队邀请码</h3>
           <div class="form-item">
             <label class="form-label">
               <span class="required">*</span>邀请码
@@ -166,7 +121,6 @@ onMounted(() => {
             {{ submitting ? '提交中...' : '申请加入' }}
           </button>
         </div>
-      </template>
     </div>
 
     <!-- 申请已提交弹窗 -->

@@ -19,6 +19,7 @@ public class Team {
     private Integer maxSize;
     private String slogan;
     private Integer status;            // 0组建中 1已提交 2已锁定
+    private LocalDateTime dissolvedAt;  // 解散时间，用于12小时恢复窗口
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     @TableField(fill = FieldFill.INSERT_UPDATE)

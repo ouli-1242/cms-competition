@@ -12,7 +12,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCompetitionDetail } from '@/api/public'
-import { registerIndividual, checkMyRegistration } from '@/api/registration'
+import { registerIndividual } from '@/api/registration'
 
 const router = useRouter()
 const route = useRoute()
@@ -35,8 +35,8 @@ const placeholder: any = {
   category: '学科竞赛',
   registerStart: '2025-03-03 00:00',
   registerEnd: '2025-04-10 23:59',
-  contestStart: '2025-04-20 00:00',
-  contestEnd: '2025-05-10 23:59',
+  compStart: '2025-04-20 00:00',
+  compEnd: '2025-05-10 23:59',
   currentCount: 45,
   maxCount: 100,
   status: 1
@@ -70,17 +70,6 @@ async function onRegisterClick() {
     return
   }
 
-  // 检查是否已报名
-  try {
-    const registered = await checkMyRegistration(competition.value.id)
-    if (registered) {
-      dialogType.value = 'duplicate'
-      return
-    }
-  } catch (e) {
-    // 静默
-  }
-
   // 检查是否在报名期
   if (!isRegistrationPeriod(competition.value)) {
     dialogType.value = 'ended'
@@ -109,9 +98,7 @@ async function handleConfirm() {
   if (submitting.value) return
   submitting.value = true
   try {
-    await registerIndividual({
-      competitionId: competition.value.id
-    })
+    await registerIndividual(competition.value.id)
     // 报名成功弹窗（状态 6）
     dialogType.value = 'none'
     setTimeout(() => {
@@ -217,7 +204,7 @@ onMounted(() => {
             <div class="info-row">
               <span class="info-label">比赛时间</span>
               <span class="info-value">
-                {{ formatDate(competition.contestStart) }} 至 {{ formatDate(competition.contestEnd) }}
+                {{ formatDate(competition.compStart) }} 至 {{ formatDate(competition.compEnd) }}
               </span>
             </div>
           </el-col>
@@ -254,7 +241,8 @@ onMounted(() => {
 
     <!-- ============ 弹窗 1: 报名确认 ============ -->
     <el-dialog
-      v-model="dialogVisible.confirm"
+      :model-value="dialogVisible.confirm"
+      @update:model-value="(val: boolean) => { if (!val) dialogType = 'none' }"
       width="480px"
       :show-close="true"
       :close-on-click-modal="false"
@@ -267,7 +255,7 @@ onMounted(() => {
       </template>
       <div class="dialog-body">
         <div class="alert alert-info">
-          <div class="alert-icon">ℹ️</div>
+          <div class="alert-icon">i</div>
           <div>
             <p class="alert-title">确认报名该竞赛吗？</p>
             <p class="alert-desc">报名提交后将进入审核流程，请确认信息无误。</p>
@@ -297,7 +285,8 @@ onMounted(() => {
 
     <!-- ============ 弹窗 2: 报名已截止 ============ -->
     <el-dialog
-      v-model="dialogVisible.ended"
+      :model-value="dialogVisible.ended"
+      @update:model-value="(val: boolean) => { if (!val) dialogType = 'none' }"
       width="440px"
       :show-close="true"
       align-center
@@ -325,7 +314,8 @@ onMounted(() => {
 
     <!-- ============ 弹窗 3: 不可重复报名 ============ -->
     <el-dialog
-      v-model="dialogVisible.duplicate"
+      :model-value="dialogVisible.duplicate"
+      @update:model-value="(val: boolean) => { if (!val) dialogType = 'none' }"
       width="440px"
       :show-close="true"
       align-center
@@ -353,7 +343,8 @@ onMounted(() => {
 
     <!-- ============ 弹窗 4: 未登录 ============ -->
     <el-dialog
-      v-model="dialogVisible.login"
+      :model-value="dialogVisible.login"
+      @update:model-value="(val: boolean) => { if (!val) dialogType = 'none' }"
       width="440px"
       :show-close="true"
       align-center
@@ -365,7 +356,7 @@ onMounted(() => {
       </template>
       <div class="dialog-body">
         <div class="alert alert-info">
-          <div class="alert-icon">🔒</div>
+          <div class="alert-icon">!</div>
           <div>
             <p class="alert-title">您还未登录</p>
             <p class="alert-desc">报名需要先登录账号，是否前往登录？</p>
@@ -382,7 +373,8 @@ onMounted(() => {
 
     <!-- ============ 弹窗 5: 人数已满 ============ -->
     <el-dialog
-      v-model="dialogVisible.full"
+      :model-value="dialogVisible.full"
+      @update:model-value="(val: boolean) => { if (!val) dialogType = 'none' }"
       width="440px"
       :show-close="true"
       align-center
@@ -410,7 +402,8 @@ onMounted(() => {
 
     <!-- ============ 弹窗 6: 报名成功 ============ -->
     <el-dialog
-      v-model="dialogVisible.success"
+      :model-value="dialogVisible.success"
+      @update:model-value="(val: boolean) => { if (!val) dialogType = 'none' }"
       width="440px"
       :show-close="true"
       align-center

@@ -19,7 +19,7 @@ import {
   Check,
   ArrowDown
 } from '@element-plus/icons-vue'
-import { register, checkUsernameExists, checkEmailExists } from '@/api/auth'
+import { register } from '@/api/auth'
 
 const router = useRouter()
 
@@ -96,16 +96,6 @@ async function validateField(field: keyof typeof form): Promise<boolean> {
         errors.username = '请输入 6-12 位数字学号'
         return false
       }
-      // 后端查重
-      try {
-        const exists = await checkUsernameExists(v)
-        if (exists) {
-          errors.username = '该学号已被注册'
-          return false
-        }
-      } catch (e) {
-        // 静默
-      }
       break
     case 'realName':
       if (!v) {
@@ -141,15 +131,6 @@ async function validateField(field: keyof typeof form): Promise<boolean> {
       if (!emailReg.test(v)) {
         errors.email = '请输入正确的邮箱'
         return false
-      }
-      try {
-        const exists = await checkEmailExists(v)
-        if (exists) {
-          errors.email = '该邮箱已被注册'
-          return false
-        }
-      } catch (e) {
-        // 静默
       }
       break
     case 'password':
@@ -201,9 +182,7 @@ async function handleRegister() {
       password: form.password,
       realName: form.realName,
       college: form.college,
-      phone: form.phone,
-      email: form.email,
-      role: 'STUDENT'
+      phone: form.phone
     })
     successDialogVisible.value = true
     // 3 秒后自动跳转

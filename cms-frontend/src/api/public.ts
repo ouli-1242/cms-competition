@@ -1,14 +1,18 @@
 /**
  * 公共 API（无需登录）
+ * 对应 PublicController（/api）
  */
 import request from './request'
 
 export interface Banner {
   id: number
   title: string
-  image: string
-  link?: string
+  imageUrl: string
+  linkUrl?: string
   sort: number
+  status: number
+  startTime?: string
+  endTime?: string
 }
 
 export interface Competition {
@@ -17,41 +21,51 @@ export interface Competition {
   category: string
   cover: string
   description: string
-  organizer: string
+  type: number
+  maxTeamSize: number
+  minTeamSize?: number
   registerStart: string
   registerEnd: string
-  contestTime: string
-  maxTeamSize: number
+  compStart: string
+  compEnd: string
   status: number
   teacherId?: number
   registrationCount?: number
+  createTime?: string
 }
 
 export interface PageResult<T> {
   total: number
-  list: T[]
-  page: number
+  records: T[]
+  current: number
   size: number
+  pages: number
 }
 
+/** 首页轮播图 GET /api/banner/public/list */
 export function getActiveBanners() {
-  return request.get<Banner[]>('/public/banners/active')
+  return request.get<Banner[]>('/banner/public/list')
 }
 
+/** 首页热门推荐 GET /api/hot-recommend/public/list */
 export function getActiveHot() {
-  return request.get('/public/hot/active')
+  return request.get<Competition[]>('/hot-recommend/public/list')
 }
 
+/** 公开竞赛分页 GET /api/competition/public/page */
 export function getCompetitions(params: {
-  page?: number
-  size?: number
+  pageNum?: number
+  pageSize?: number
   keyword?: string
   category?: string
-  status?: number
+  registrationStatus?: number
+  type?: number
+  excludeEnded?: boolean
 }) {
-  return request.get<PageResult<Competition>>('/public/competitions', { params })
+  return request.get<PageResult<Competition>>('/competition/public/page', { params })
 }
 
+/** 公开竞赛详情 GET /api/competition/public/{id} */
 export function getCompetitionDetail(id: number) {
-  return request.get<Competition>(`/public/competitions/${id}`)
+  return request.get<Competition>(`/competition/public/${id}`)
 }

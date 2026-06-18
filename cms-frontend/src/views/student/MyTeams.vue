@@ -9,46 +9,56 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getMyTeams, quitTeam } from '@/api/team'
+import { getCompetitionDetail } from '@/api/public'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const teams = ref<any[]>([])
 const loading = ref(false)
+const compTitleMap = ref<Record<number, string>>({})
 
-// 占位数据
-const placeholder = [
-  {
-    id: 1,
-    title: '全国大学生数学建模竞赛',
-    category: '校级赛',
-    role: 'CAPTAIN',
-    currentCount: 2,
-    maxMembers: 3,
-    inviteCode: 'A3B7K9',
-    status: 1,
-    statusText: '待提交'
-  },
-  {
-    id: 2,
-    title: '"互联网+"创新创业大赛',
-    category: 'A类',
-    role: 'MEMBER',
-    currentCount: 3,
-    maxMembers: 5,
-    inviteCode: 'C2D9F1',
-    status: 2,
-    statusText: '审核中'
-  }
-]
+function getCompTitle(id: number) {
+  return compTitleMap.value[id] || `竞赛 #${id}`
+}
 
 async function loadTeams() {
   loading.value = true
   try {
     const res: any = await getMyTeams()
-    teams.value = res || []
+    const list = Array.isArray(res) ? res : []
+    const roleMap: Record<number, string> = { 1: 'CAPTAIN', 0: 'MEMBER' }
+
+    // 批量获取竞赛名称
+    const ids = [...new Set(list.map((i: any) => i.team?.competitionId).filter(Boolean))] as number[]
+    const fetches = ids
+      .filter((id) => !compTitleMap.value[id])
+      .map((id) =>
+        getCompetitionDetail(id)
+          .then((c: any) => { if (c) compTitleMap.value[id] = c.title })
+          .catch(() => {})
+      )
+    await Promise.all(fetches)
+
+    teams.value = list.map((item: any) => {
+      const t = item.team
+      const isPending = item.memberStatus === 0
+      const teamStatusMap: Record<number, string> = { 0: '待提交', 1: '审核中', 2: '已通过', 3: '已拒绝' }
+      return {
+        id: t.id,
+        title: t.teamName || '团队',
+        category: t.competitionId ? getCompTitle(t.competitionId) : '',
+        role: roleMap[item.myRole] || 'MEMBER',
+        currentCount: item.members?.length || 0,
+        maxMembers: t.maxSize || 5,
+        inviteCode: t.inviteCode || '',
+        status: t.status,
+        isPending,
+        statusText: isPending ? '待审核' : (teamStatusMap[t.status] || '未知')
+      }
+    })
   } catch (e) {
-    teams.value = placeholder
+    teams.value = []
   } finally {
     loading.value = false
   }
@@ -59,16 +69,16 @@ function roleText(r: string) {
 }
 
 function statusType(s: string) {
-  const m: any = { '审核中': 'warning', '已通过': 'success', '已拒绝': 'danger', '已提交': 'primary' }
+  const m: any = { '审核中': 'warning', '已通过': 'success', '已拒绝': 'danger', '已提交': 'primary', '待审核': 'warning' }
   return m[s] || 'info'
 }
 
 function goCreate() {
-  router.push({ name: 'TeamCreate', query: { competitionId: 1 } })
+  router.push({ name: 'TeamCreate' })
 }
 
 function goJoin() {
-  router.push({ name: 'TeamJoin', query: { competitionId: 1 } })
+  router.push({ name: 'TeamJoin' })
 }
 
 function goDetail(t: any) {
@@ -86,9 +96,7 @@ async function handleQuit(t: any) {
       confirmButtonText: '确认退出',
       cancelButtonText: '再想想'
     })
-    try {
-      await quitTeam(t.id)
-    } catch (e) {}
+    await quitTeam(t.id)
     ElMessage.success('已退出团队')
     teams.value = teams.value.filter((x) => x.id !== t.id)
   } catch {}
@@ -104,8 +112,8 @@ onMounted(() => {
     <div class="page-header">
       <h1 class="page-title">我的团队</h1>
       <div class="user-mini">
-        <div class="avatar">{{ userStore.realName?.[0] || 'U' }}</div>
-        <span class="user-name">{{ userStore.realName || '用户' }}</span>
+        <div class="avatar">{{ userStore.user?.realName?.[0] || 'U' }}</div>
+        <span class="user-name">{{ userStore.user?.realName || '用户' }}</span>
       </div>
     </div>
 
@@ -131,7 +139,7 @@ onMounted(() => {
             <h3 class="team-title">{{ t.title }}</h3>
             <div class="team-meta">
               <el-tag size="small" effect="plain" round>{{ t.category }}</el-tag>
-              <el-tag size="small" effect="plain" type="info" round>👥 {{ t.currentCount }}/{{ t.maxMembers }}人</el-tag>
+              <el-tag size="small" effect="plain" type="info" round>{{ t.currentCount }}/{{ t.maxMembers }}人</el-tag>
               <el-tag size="small" effect="plain" :type="t.role === 'CAPTAIN' ? 'warning' : 'info'" round>
                 {{ roleText(t.role) }}
               </el-tag>
@@ -142,19 +150,19 @@ onMounted(() => {
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn-link" @click="goDetail(t)">查看详情</button>
-          <button v-if="t.role === 'MEMBER'" class="btn-quit" @click="handleQuit(t)">退出团队</button>
+          <template v-if="t.isPending">
+            <span class="pending-hint">等待队长审核</span>
+          </template>
+          <template v-else>
+            <button class="btn-link" @click="goDetail(t)">查看详情</button>
+            <button v-if="t.role === 'MEMBER'" class="btn-quit" @click="handleQuit(t)">退出团队</button>
+          </template>
         </div>
       </div>
     </div>
 
     <div v-else class="empty">
-      <el-empty description="暂无团队">
-        <div class="empty-actions">
-          <el-button type="primary" @click="goCreate">创建团队</el-button>
-          <el-button @click="goJoin">加入团队</el-button>
-        </div>
-      </el-empty>
+      <el-empty description="暂无团队" />
     </div>
   </div>
 </template>
@@ -351,16 +359,15 @@ onMounted(() => {
   }
 }
 
+.pending-hint {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
 .empty {
   background: $bg-card;
   border-radius: $radius-md;
   padding: $space-10;
-}
-
-.empty-actions {
-  display: flex;
-  gap: $space-3;
-  justify-content: center;
 }
 
 @media (max-width: 768px) {

@@ -7,6 +7,7 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -14,15 +15,11 @@ const userStore = useUserStore()
 
 const menus = [
   { path: '/teacher', label: '控制台', icon: 'Grid' },
+  { path: '/teacher/competitions', label: '我的竞赛', icon: 'Trophy' },
   { path: '/teacher/audit', label: '报名审核', icon: 'CircleCheck' },
-  { path: '/teacher/stats', label: '数据统计', icon: 'TrendCharts' },
-  { path: '/student/profile', label: '个人中心', icon: 'User' }
+  { path: '/teacher/advisor', label: '指导邀请', icon: 'UserFilled' },
+  { path: '/teacher/stats', label: '数据统计', icon: 'TrendCharts' }
 ]
-
-const roleText = computed(() => {
-  const map: any = { ADMIN: '管理员', TEACHER: '老师', STUDENT: '学生' }
-  return map[userStore.user?.role] || '用户'
-})
 
 const userDisplay = computed(() => {
   return userStore.user?.realName || userStore.user?.username || '老师'
@@ -39,7 +36,11 @@ function logout() {
     <!-- 橙色渐变侧边栏 -->
     <aside class="sider">
       <div class="logo">
-        <span class="logo-icon">🏆</span>
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff">
+            <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+          </svg>
+        </div>
         <span class="logo-text">竞赛管理系统</span>
       </div>
 
@@ -62,12 +63,13 @@ function logout() {
     <!-- 内容区 -->
     <div class="content">
       <header class="topbar">
-        <el-button class="role-switch" type="primary" plain @click="showRoleDialog">
-          <el-icon><Refresh /></el-icon>
-          切换角色: {{ roleText }}
+        <el-button class="role-switch" type="primary" plain @click="router.push('/')">
+          <el-icon><HomeFilled /></el-icon>
+          返回首页
         </el-button>
 
         <div class="user-area">
+          <NotificationBell />
           <span class="welcome">欢迎: <strong>{{ userDisplay }}</strong></span>
           <el-button class="logout-btn" type="info" plain @click="logout">
             <el-icon><SwitchButton /></el-icon>退出登录
@@ -93,7 +95,7 @@ function logout() {
 
 .sider {
   width: 220px;
-  background: linear-gradient(180deg, #f6ad55 0%, #ed8936 100%);
+  background: linear-gradient(180deg, #4a90e2 0%, #2b6cb0 100%);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -115,7 +117,13 @@ function logout() {
 }
 
 .logo-icon {
-  font-size: 22px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu {
