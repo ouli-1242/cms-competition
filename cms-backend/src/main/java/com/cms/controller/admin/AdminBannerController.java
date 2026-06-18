@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/admin/banner")
 @PreAuthorize("hasRole('ADMIN')")
@@ -24,12 +26,12 @@ public class AdminBannerController {
     }
 
     @PostMapping
-    public Result<Banner> add(@RequestBody BannerDTO dto) {
+    public Result<Banner> add(@Valid @RequestBody BannerDTO dto) {
         return Result.success(bannerService.add(dto));
     }
 
     @PutMapping("/{id}")
-    public Result update(@PathVariable Long id, @RequestBody BannerDTO dto) {
+    public Result update(@PathVariable Long id, @Valid @RequestBody BannerDTO dto) {
         bannerService.update(id, dto);
         return Result.success();
     }

@@ -1,6 +1,7 @@
 package com.cms.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -13,11 +14,12 @@ public class User {
     @TableId(type = IdType.AUTO)
     private Long id;
     private String username;
+    @JsonIgnore
     private String password;
     private String nickname;
     private String realName;
     private String role;          // VISITOR/STUDENT/TEACHER/ADMIN
-    private String school;
+    private String college;       // 学院
     private String phone;
     private String email;
     private String avatar;

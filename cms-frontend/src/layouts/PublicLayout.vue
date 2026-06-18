@@ -1,15 +1,24 @@
 <script setup lang="ts">
 /**
- * 公共布局 - 顶部 Logo + 搜索 + 登录/注册入口 + 内容区 + 底部 Tab
+ * 公共布局 - 顶部 Logo + 搜索 + 登录/注册入口 + 左侧可缩放导航栏 + 内容区
  */
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Search } from '@element-plus/icons-vue'
+import { Search, HomeFilled, Trophy, User, Document, UserFilled, TrendCharts, Setting } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+onMounted(() => {
+  if (userStore.isLoggedIn) {
+    userStore.fetchInfo()
+  }
+})
+
+const collapsed = ref(false)
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -23,12 +32,32 @@ function logout() {
   router.push('/login')
 }
 
-// 底部 Tab
-const bottomTabs = [
-  { path: '/', label: '首页', icon: '🏠' },
-  { path: '/competitions', label: '竞赛库', icon: '🏆' },
-  { path: userStore.isLoggedIn ? (userStore.isStudent ? '/student/profile' : userStore.isTeacher ? '/teacher/audit' : '/admin/competitions') : '/login', label: '个人中心', icon: '👤' }
-]
+// 左侧导航（根据登录状态动态显示）
+const sideMenus = computed(() => {
+  const menus = [
+    { path: '/', label: '首页', icon: 'HomeFilled' },
+    { path: '/competitions', label: '竞赛库', icon: 'Trophy' }
+  ]
+  if (userStore.isLoggedIn) {
+    if (userStore.isStudent) {
+      menus.push(
+        { path: '/student/profile', label: '个人中心', icon: 'User' },
+        { path: '/student-center/my-registrations', label: '我的报名', icon: 'Document' },
+        { path: '/student-center/my-teams', label: '我的团队', icon: 'UserFilled' }
+      )
+    } else if (userStore.isTeacher) {
+      menus.push({ path: '/teacher', label: '工作台', icon: 'TrendCharts' })
+    } else if (userStore.isAdmin) {
+      menus.push({ path: '/admin', label: '后台管理', icon: 'Setting' })
+    }
+  }
+  return menus
+})
+
+function isActive(t: { path: string }) {
+  if (t.path === '/') return route.path === '/'
+  return route.path === t.path || route.path.startsWith(t.path + '/')
+}
 </script>
 
 <template>
@@ -61,9 +90,13 @@ const bottomTabs = [
         <!-- 操作区 -->
         <div class="actions">
           <template v-if="userStore.isLoggedIn">
+            <NotificationBell />
             <el-dropdown>
               <div class="user-trigger">
-                <div class="avatar">{{ userStore.user?.realName?.[0] || userStore.user?.username?.[0] || 'U' }}</div>
+                <div class="avatar">
+                  <img v-if="userStore.user?.avatar" :src="userStore.user.avatar" class="avatar-img" />
+                  <span v-else>{{ userStore.user?.realName?.[0] || userStore.user?.username?.[0] || 'U' }}</span>
+                </div>
                 <span class="user-name">{{ userStore.user?.realName || userStore.user?.username }}</span>
               </div>
               <template #dropdown>
@@ -90,24 +123,29 @@ const bottomTabs = [
       </div>
     </header>
 
-    <!-- 内容区 -->
-    <main class="main">
-      <router-view />
-    </main>
+    <div class="body-wrap">
+      <!-- 左侧导航栏 -->
+      <aside class="sidebar" :class="{ collapsed }">
+        <router-link
+          v-for="t in sideMenus"
+          :key="t.path"
+          :to="t.path"
+          class="side-item"
+          :class="{ active: isActive(t) }"
+        >
+          <el-icon class="side-icon"><component :is="t.icon" /></el-icon>
+          <span v-show="!collapsed" class="side-label">{{ t.label }}</span>
+        </router-link>
+        <button class="collapse-btn" @click="collapsed = !collapsed">
+          <span>{{ collapsed ? '»' : '«' }}</span>
+        </button>
+      </aside>
 
-    <!-- 底部 Tab 栏 -->
-    <footer class="bottombar">
-      <router-link
-        v-for="t in bottomTabs"
-        :key="t.path"
-        :to="t.path"
-        class="tab-item"
-        :class="{ active: route.path === t.path || (t.path === '/competitions' && route.path.startsWith('/competitions')) }"
-      >
-        <span class="tab-icon">{{ t.icon }}</span>
-        <span class="tab-label">{{ t.label }}</span>
-      </router-link>
-    </footer>
+      <!-- 内容区 -->
+      <main class="main">
+        <router-view />
+      </main>
+    </div>
   </div>
 </template>
 
@@ -118,7 +156,6 @@ const bottomTabs = [
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 64px; // 为底部 Tab 留位置
 }
 
 // ===== 顶部栏 =====
@@ -132,8 +169,7 @@ const bottomTabs = [
 }
 
 .topbar-inner {
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: 100%;
   padding: 0 $space-6;
   height: 64px;
   display: flex;
@@ -171,6 +207,7 @@ const bottomTabs = [
 .search-wrap {
   flex: 1;
   max-width: 480px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   gap: $space-2;
@@ -270,6 +307,14 @@ const bottomTabs = [
   justify-content: center;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .user-name {
@@ -281,48 +326,100 @@ const bottomTabs = [
   white-space: nowrap;
 }
 
-// ===== 主内容 =====
-.main {
+// ===== 主体 =====
+.body-wrap {
   flex: 1;
-}
-
-// ===== 底部 Tab =====
-.bottombar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  height: 60px;
-  background: $bg-card;
-  border-top: 1px solid $border-light;
   display: flex;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.tab-item {
-  flex: 1;
+// ===== 左侧导航 =====
+.sidebar {
+  width: 160px;
+  min-height: calc(100vh - 64px);
+  background: $bg-card;
+  border-right: 1px solid $border-light;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  color: $text-secondary;
+  padding: $space-4 0;
+  gap: $space-2;
+  flex-shrink: 0;
+  transition: width 0.25s ease;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 56px;
+}
+
+.side-item {
+  width: calc(100% - 16px);
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border-radius: $radius-base;
+  color: $text-regular;
   text-decoration: none;
-  transition: color $transition-fast;
-  font-size: $font-size-xs;
+  font-size: $font-size-sm;
+  transition: all $transition-fast;
+  white-space: nowrap;
+  overflow: hidden;
+
+  &:hover {
+    background: $primary-50;
+    color: $primary;
+  }
 
   &.active {
+    background: $primary-50;
     color: $primary;
+    font-weight: $font-weight-medium;
   }
 }
 
-.tab-icon {
-  font-size: 22px;
+.side-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
 }
 
-.tab-label {
-  font-size: $font-size-xs;
+.side-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collapse-btn {
+  margin-top: auto;
+  width: 32px;
+  height: 32px;
+  border: 1px solid $border-base;
+  background: $bg-card;
+  border-radius: $radius-base;
+  cursor: pointer;
+  color: $text-secondary;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  &:hover {
+    background: $primary-50;
+    color: $primary;
+    border-color: $primary;
+  }
+}
+
+// ===== 主内容 =====
+.main {
+  flex: 1;
+  min-width: 0;
 }
 
 // ===== 响应式 =====
@@ -338,6 +435,15 @@ const bottomTabs = [
     max-width: none;
   }
   .user-name {
+    display: none;
+  }
+  .sidebar {
+    width: 56px;
+  }
+  .side-label {
+    display: none;
+  }
+  .collapse-btn {
     display: none;
   }
 }

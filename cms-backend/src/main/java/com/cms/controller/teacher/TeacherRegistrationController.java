@@ -8,9 +8,13 @@ import com.cms.common.util.SecurityUtil;
 import com.cms.entity.Competition;
 import com.cms.entity.Registration;
 import com.cms.entity.TeamRegistration;
+import com.cms.entity.Team;
+import com.cms.entity.User;
 import com.cms.mapper.CompetitionMapper;
 import com.cms.mapper.RegistrationMapper;
 import com.cms.mapper.TeamRegistrationMapper;
+import com.cms.mapper.TeamMapper;
+import com.cms.mapper.UserMapper;
 import com.cms.service.RegistrationService;
 import com.cms.service.TeamRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/teacher")
@@ -29,6 +34,8 @@ public class TeacherRegistrationController {
     @Autowired private RegistrationMapper registrationMapper;
     @Autowired private TeamRegistrationMapper teamRegistrationMapper;
     @Autowired private CompetitionMapper competitionMapper;
+    @Autowired private UserMapper userMapper;
+    @Autowired private TeamMapper teamMapper;
 
     /** 我指导的竞赛 ID 列表 */
     private List<Long> myCompIds() {
@@ -56,12 +63,19 @@ public class TeacherRegistrationController {
         if (ids.isEmpty()) return Result.success(page);
 
         LambdaQueryWrapper<Registration> wrapper = new LambdaQueryWrapper<>();
-        if (competitionId != null) wrapper.eq(Registration::getCompetitionId, competitionId);
-        else wrapper.in(Registration::getCompetitionId, ids);
+        if (competitionId != null) {
+            if (!ids.contains(competitionId)) throw new BusinessException(403, "您不是该竞赛的指导老师");
+            wrapper.eq(Registration::getCompetitionId, competitionId);
+        } else {
+            wrapper.in(Registration::getCompetitionId, ids);
+        }
         if (status != null) wrapper.eq(Registration::getStatus, status);
         if (studentName != null && !studentName.isEmpty()) {
-            wrapper.inSql(Registration::getUserId,
-                "SELECT id FROM user WHERE real_name LIKE '%" + studentName + "%'");
+            LambdaQueryWrapper<User> userQuery = new LambdaQueryWrapper<>();
+            userQuery.like(User::getRealName, studentName).select(User::getId);
+            List<Long> userIds = userMapper.selectList(userQuery).stream().map(User::getId).collect(Collectors.toList());
+            if (userIds.isEmpty()) userIds.add(-1L); // no match
+            wrapper.in(Registration::getUserId, userIds);
         }
         wrapper.orderByDesc(Registration::getRegisterTime);
         return Result.success(registrationMapper.selectPage(page, wrapper));
@@ -85,15 +99,27 @@ public class TeacherRegistrationController {
         @RequestParam(defaultValue = "1") Integer pageNum,
         @RequestParam(defaultValue = "10") Integer pageSize,
         @RequestParam(required = false) Long competitionId,
-        @RequestParam(required = false) Integer status) {
+        @RequestParam(required = false) Integer status,
+        @RequestParam(required = false) String teamName) {
         Page<TeamRegistration> page = new Page<>(pageNum, pageSize);
         List<Long> ids = myCompIds();
         if (ids.isEmpty()) return Result.success(page);
 
         LambdaQueryWrapper<TeamRegistration> wrapper = new LambdaQueryWrapper<>();
-        if (competitionId != null) wrapper.eq(TeamRegistration::getCompetitionId, competitionId);
-        else wrapper.in(TeamRegistration::getCompetitionId, ids);
+        if (competitionId != null) {
+            if (!ids.contains(competitionId)) throw new BusinessException(403, "您不是该竞赛的指导老师");
+            wrapper.eq(TeamRegistration::getCompetitionId, competitionId);
+        } else {
+            wrapper.in(TeamRegistration::getCompetitionId, ids);
+        }
         if (status != null) wrapper.eq(TeamRegistration::getStatus, status);
+        if (teamName != null && !teamName.isEmpty()) {
+            LambdaQueryWrapper<Team> teamQuery = new LambdaQueryWrapper<>();
+            teamQuery.like(Team::getTeamName, teamName).select(Team::getId);
+            List<Long> teamIds = teamMapper.selectList(teamQuery).stream().map(Team::getId).collect(Collectors.toList());
+            if (teamIds.isEmpty()) teamIds.add(-1L);
+            wrapper.in(TeamRegistration::getTeamId, teamIds);
+        }
         wrapper.orderByDesc(TeamRegistration::getRegisterTime);
         return Result.success(teamRegistrationMapper.selectPage(page, wrapper));
     }

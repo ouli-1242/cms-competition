@@ -57,13 +57,21 @@ public class SecurityConfig {
             .httpBasic().disable()
             .authorizeRequests()
                 .antMatchers(
-                    "/api/auth/**",
-                    "/api/common/**",
+                    "/api/auth/login",
+                    "/api/auth/register",
+                    "/api/auth/logout",
                     "/api/competition/public/**",
+                    "/api/banner/public/**",
+                    "/api/hot-recommend/public/**",
                     "/file/**",
                     "/error"
                 ).permitAll()
                 .anyRequest().authenticated().and()
+            .exceptionHandling().authenticationEntryPoint((req, res, ex) -> {
+                res.setContentType("application/json;charset=UTF-8");
+                res.setStatus(401);
+                res.getWriter().write("{\"code\":401,\"message\":\"未登录或token已过期\"}");
+            }).and()
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

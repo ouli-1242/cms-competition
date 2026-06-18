@@ -2,11 +2,14 @@
 /**
  * 后台控制台（数据概览）
  * - 管理员 / 老师 复用
- * - 3 张统计卡片
- * - 占位图表（用 ECharts 渐变柱图）
+ * - 3 张统计卡片（来自真实 API）
+ * - 汇总柱状图（展示聚合数据，非时间序列）
  */
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { getAdminStats } from '@/api/admin'
+import { getTeacherStatistics } from '@/api/registration'
+import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 
 const userStore = useUserStore()
@@ -14,21 +17,42 @@ const userStore = useUserStore()
 // 角色判定
 const isAdmin = computed(() => userStore.user?.role === 'ADMIN')
 
-// 统计卡片（管理员视角）
-const adminStats = ref([
-  { label: '竞赛总数', value: 46, color: '#2b6cb0', bg: '#eaf2fb' },
-  { label: '待审核数', value: 15, color: '#f6ad55', bg: '#fff5e6' },
-  { label: '今日报名数', value: 28, color: '#48bb78', bg: '#f0faf4' }
+// API 返回的统计数据
+const apiStats = ref<{
+  competitionCount: number
+  totalCount: number
+  individualCount: number
+  teamCount: number
+  passedCount: number
+  pendingCount: number
+  passRate: number
+}>({
+  competitionCount: 0,
+  totalCount: 0,
+  individualCount: 0,
+  teamCount: 0,
+  passedCount: 0,
+  pendingCount: 0,
+  passRate: 0
+})
+
+// 管理员视角卡片
+const adminCards = computed(() => [
+  { label: '竞赛总数', value: apiStats.value.competitionCount, color: '#2b6cb0', bg: '#eaf2fb' },
+  { label: '报名总数', value: apiStats.value.totalCount, color: '#f6ad55', bg: '#fff5e6' },
+  { label: '已通过', value: apiStats.value.passedCount, color: '#48bb78', bg: '#f0faf4' },
+  { label: '待审核', value: apiStats.value.pendingCount, color: '#e53e3e', bg: '#fef5f5' }
 ])
 
-// 老师视角
-const teacherStats = ref([
-  { label: '指导竞赛数', value: 6, color: '#2b6cb0', bg: '#eaf2fb' },
-  { label: '待审核报名', value: 12, color: '#f6ad55', bg: '#fff5e6' },
-  { label: '已通过报名', value: 38, color: '#48bb78', bg: '#f0faf4' }
+// 老师视角卡片
+const teacherCards = computed(() => [
+  { label: '指导竞赛数', value: apiStats.value.competitionCount, color: '#2b6cb0', bg: '#eaf2fb' },
+  { label: '报名总数', value: apiStats.value.totalCount, color: '#f6ad55', bg: '#fff5e6' },
+  { label: '待审核', value: apiStats.value.pendingCount, color: '#e53e3e', bg: '#fef5f5' },
+  { label: '通过率', value: apiStats.value.passRate + '%', color: '#48bb78', bg: '#f0faf4' }
 ])
 
-const stats = computed(() => (isAdmin.value ? adminStats.value : teacherStats.value))
+const stats = computed(() => (isAdmin.value ? adminCards.value : teacherCards.value))
 
 // ECharts
 const chartRef = ref<HTMLDivElement | null>(null)
@@ -37,17 +61,19 @@ let chartInstance: echarts.ECharts | null = null
 function initChart() {
   if (!chartRef.value) return
   chartInstance = echarts.init(chartRef.value)
+  const s = apiStats.value
+  // 展示聚合数据柱状图（非时间序列趋势），各项含义见 x 轴标签
   const option = {
     title: {
-      text: '近 7 日报名趋势',
+      text: '报名数据汇总',
       left: 'left',
       textStyle: { fontSize: 14, color: '#1a202c' }
     },
-    tooltip: { trigger: 'axis' },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: {
       type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      data: ['个人报名', '团队报名', '已通过', '报名总数'],
       axisLine: { lineStyle: { color: '#e2e8f0' } },
       axisLabel: { color: '#4a5568' }
     },
@@ -59,7 +85,7 @@ function initChart() {
       axisLabel: { color: '#4a5568' }
     },
     series: [{
-      data: [10, 18, 14, 22, 28, 24, 32],
+      data: [s.individualCount, s.teamCount, s.passedCount, s.totalCount],
       type: 'bar',
       barWidth: 32,
       itemStyle: {
@@ -72,15 +98,29 @@ function initChart() {
     }]
   }
   chartInstance.setOption(option)
-  window.addEventListener('resize', resizeChart)
 }
 
 function resizeChart() {
   chartInstance?.resize()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const data = isAdmin.value
+      ? await getAdminStats()
+      : await getTeacherStatistics()
+    apiStats.value = data as any
+  } catch {
+    ElMessage.error('获取统计数据失败')
+  }
+  // 等 DOM 渲染完成后再初始化图表
   setTimeout(initChart, 100)
+  window.addEventListener('resize', resizeChart)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', resizeChart)
+  chartInstance?.dispose()
 })
 </script>
 
@@ -99,45 +139,6 @@ onMounted(() => {
     <!-- 图表 -->
     <div class="chart-card">
       <div ref="chartRef" class="chart"></div>
-    </div>
-
-    <!-- 快捷操作 -->
-    <div class="quick-actions">
-      <h3 class="section-title">快捷操作</h3>
-      <div class="action-grid">
-        <template v-if="isAdmin">
-          <router-link to="/admin/competitions" class="action-item">
-            <span class="action-icon" style="background: #eaf2fb; color: #2b6cb0">📅</span>
-            <span class="action-name">发布竞赛</span>
-          </router-link>
-          <router-link to="/admin/registrations" class="action-item">
-            <span class="action-icon" style="background: #fff5e6; color: #f6ad55">📋</span>
-            <span class="action-name">审核报名</span>
-          </router-link>
-          <router-link to="/admin/banners" class="action-item">
-            <span class="action-icon" style="background: #f0faf4; color: #48bb78">🖼</span>
-            <span class="action-name">维护轮播</span>
-          </router-link>
-          <router-link to="/admin/stats" class="action-item">
-            <span class="action-icon" style="background: #fef5f5; color: #e53e3e">📊</span>
-            <span class="action-name">数据大屏</span>
-          </router-link>
-        </template>
-        <template v-else>
-          <router-link to="/teacher/audit" class="action-item">
-            <span class="action-icon" style="background: #fff5e6; color: #f6ad55">✅</span>
-            <span class="action-name">审核报名</span>
-          </router-link>
-          <router-link to="/teacher/stats" class="action-item">
-            <span class="action-icon" style="background: #eaf2fb; color: #2b6cb0">📊</span>
-            <span class="action-name">查看统计</span>
-          </router-link>
-          <router-link to="/student/profile" class="action-item">
-            <span class="action-icon" style="background: #f0faf4; color: #48bb78">👤</span>
-            <span class="action-name">个人资料</span>
-          </router-link>
-        </template>
-      </div>
     </div>
   </div>
 </template>
@@ -161,7 +162,7 @@ onMounted(() => {
 // ===== 统计卡片 =====
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: $space-4;
 }
 
@@ -206,64 +207,9 @@ onMounted(() => {
   height: 360px;
 }
 
-// ===== 快捷操作 =====
-.quick-actions {
-  background: $bg-card;
-  border-radius: $radius-md;
-  padding: $space-5;
-  box-shadow: $shadow-sm;
-}
-
-.section-title {
-  margin: 0 0 $space-4;
-  font-size: $font-size-md;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-}
-
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-3;
-}
-
-.action-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-5 $space-3;
-  background: $bg-page;
-  border-radius: $radius-md;
-  text-decoration: none;
-  color: $text-primary;
-  transition: all $transition-base;
-
-  &:hover {
-    background: $primary-50;
-    transform: translateY(-2px);
-  }
-}
-
-.action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: $radius-md;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-}
-
-.action-name {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
-
 // ===== 响应式 =====
 @media (max-width: 768px) {
-  .stat-grid,
-  .action-grid {
+  .stat-grid {
     grid-template-columns: 1fr 1fr;
   }
 }

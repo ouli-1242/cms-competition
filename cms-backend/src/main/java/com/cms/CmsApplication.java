@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class CmsApplication {
     public static void main(String[] args) {
         SpringApplication.run(CmsApplication.class, args);
-        System.out.println("\n========== CMS Backend Started ==========");
+        System.out.println("\n=== CMS Backend Started =================");
         System.out.println("API:    http://localhost:8080");
         System.out.println("==========================================\n");
     }

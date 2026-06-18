@@ -86,8 +86,12 @@ async function handleLogin() {
     await userStore.login(form.username, form.password)
     ElMessage.success('登录成功')
     failedCount.value = 0
-    const redirect = (route.query.redirect as string) || '/'
-    router.push(redirect)
+    const redirect = (route.query.redirect as string) || ''
+    if (redirect) {
+      router.push(redirect)
+    } else {
+      router.push('/')
+    }
   } catch (err: any) {
     failedCount.value++
     if (failedCount.value >= MAX_FAIL) {

@@ -15,7 +15,9 @@ export interface UserInfo {
   username: string
   role: Role
   realName?: string
+  nickname?: string
   studentNo?: string
+  school?: string
   college?: string
   phone?: string
   email?: string
@@ -39,22 +41,28 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => role.value === 'ADMIN')
 
   async function login(username: string, password: string) {
-    const res = await loginApi({ username, password })
+    const res: any = await loginApi({ username, password })
     token.value = res.token
+    const u = res.user || res
     user.value = {
-      id: res.userId,
-      username: res.username || username,
-      role: res.role,
-      realName: res.realName
+      id: u.id,
+      username: u.username || username,
+      role: u.role,
+      realName: u.realName || u.nickname,
+      nickname: u.nickname,
+      college: u.college,
+      phone: u.phone,
+      email: u.email,
+      avatar: u.avatar
     }
     localStorage.setItem(TOKEN_KEY, res.token)
     localStorage.setItem(USER_KEY, JSON.stringify(user.value))
-    return res
+    return user.value
   }
 
   async function fetchInfo() {
     if (!token.value) return null
-    const info = await getUserInfo()
+    const info = (await getUserInfo()) as any
     user.value = info
     localStorage.setItem(USER_KEY, JSON.stringify(info))
     return info

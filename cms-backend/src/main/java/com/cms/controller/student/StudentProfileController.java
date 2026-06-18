@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/student/profile")
 @PreAuthorize("hasRole('STUDENT')")
@@ -31,8 +33,15 @@ public class StudentProfileController {
     }
 
     @PutMapping("/password")
-    public Result changePassword(@RequestParam String oldPwd, @RequestParam String newPwd) {
-        userService.changePassword(SecurityUtil.currentUserId(), oldPwd, newPwd);
+    public Result changePassword(@RequestBody Map<String, String> pwdMap) {
+        String newPwd = pwdMap.get("newPwd");
+        if (newPwd == null || newPwd.trim().isEmpty()) {
+            return Result.error("新密码不能为空");
+        }
+        if (newPwd.length() < 6) {
+            return Result.error("新密码长度不能少于6位");
+        }
+        userService.changePassword(SecurityUtil.currentUserId(), pwdMap.get("oldPwd"), newPwd);
         return Result.success();
     }
 }

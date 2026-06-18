@@ -11,5 +11,7 @@ public class StatisticsVO {
     private Integer individualCount;
     private Integer teamCount;
     private Integer passedCount;
+    private Integer pendingCount;
+    private Integer rejectedCount;
     private Double passRate;
 }

@@ -6,7 +6,9 @@
  */
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getBanners, createBanner, deleteBanner } from '@/api/admin'
+import { getBanners, createBanner, deleteBanner, addHotRecommend, removeHotRecommend, autoHotRecommend, getCompetitions } from '@/api/admin'
+import { getActiveHot } from '@/api/public'
+import { uploadFile } from '@/api/upload'
 
 const loading = ref(false)
 const bannerList = ref<any[]>([])
@@ -37,23 +39,36 @@ const competitions = ref<any[]>([])
 
 // 占位数据
 const placeholderBanners = [
-  { id: 1, imageUrl: 'https://via.placeholder.com/100x40?text=Banner1', link: 'https://www.baidu.com' }
+  { id: 1, imageUrl: '', link: '' }
 ]
-const placeholderComps = [
-  { id: 1, title: '程序设计竞赛' },
-  { id: 2, title: '英语演讲比赛' },
-  { id: 3, title: '软件设计竞赛' }
-]
-
 async function loadBanners() {
   loading.value = true
   try {
-    const res: any = await getBanners()
-    bannerList.value = res || []
+    const res: any = await getBanners({ pageNum: 1, pageSize: 100 })
+    bannerList.value = res?.records || res || []
   } catch (e) {
     bannerList.value = placeholderBanners
   } finally {
     loading.value = false
+  }
+}
+
+async function loadCompetitions() {
+  try {
+    const res: any = await getCompetitions({ pageNum: 1, pageSize: 100 })
+    competitions.value = (res?.records || []).map((r: any) => ({ id: r.id, title: r.title }))
+  } catch (e) {
+    ElMessage.error('加载竞赛列表失败')
+  }
+}
+
+/** 加载当前热门推荐，回显勾选状态 */
+async function loadHotPicks() {
+  try {
+    const list: any = await getActiveHot()
+    hotPicks.pinned = (Array.isArray(list) ? list : []).map((c: any) => c.id)
+  } catch {
+    hotPicks.pinned = []
   }
 }
 
@@ -69,10 +84,19 @@ const fileInput = ref<HTMLInputElement | null>(null)
 function triggerUpload() {
   fileInput.value?.click()
 }
-function onFileChange(e: Event) {
+const uploading = ref(false)
+async function onFileChange(e: Event) {
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
-  if (file) bannerForm.imageUrl = file.name
+  if (!file) return
+  uploading.value = true
+  try {
+    const url = await uploadFile(file, 'banner')
+    bannerForm.imageUrl = url
+    ElMessage.success('图片上传成功')
+  } finally {
+    uploading.value = false
+  }
 }
 
 function validateBanner(): boolean {
@@ -97,9 +121,7 @@ async function handleAddSave() {
   if (!validateBanner()) return
   submitting.value = true
   try {
-    try {
-      await createBanner({ imageUrl: bannerForm.imageUrl, link: bannerForm.link })
-    } catch (e) {}
+    await createBanner({ imageUrl: bannerForm.imageUrl, linkUrl: bannerForm.link })
     bannerList.value.push({
       id: Date.now(),
       imageUrl: bannerForm.imageUrl,
@@ -119,6 +141,7 @@ function openDelete(row: any) {
 
 async function confirmDelete() {
   if (!deleteTarget.value) return
+  await deleteBanner(deleteTarget.value.id)
   bannerList.value = bannerList.value.filter((x) => x.id !== deleteTarget.value.id)
   ElMessage.success('删除成功')
   deleteVisible.value = false
@@ -138,8 +161,27 @@ function isPinned(id: number): boolean {
   return hotPicks.pinned.includes(id)
 }
 
-function saveHotPicks() {
-  saveVisible.value = true
+async function saveHotPicks() {
+  try {
+    if (hotPicks.autoRecommend) {
+      await autoHotRecommend(hotPicks.pinned.length || 5)
+      ElMessage.success('已自动推荐热门竞赛')
+    } else {
+      // 先移除所有现有推荐
+      const current: any = await getActiveHot()
+      for (const c of (Array.isArray(current) ? current : [])) {
+        await removeHotRecommend(c.id)
+      }
+      // 再添加勾选的
+      for (let i = 0; i < hotPicks.pinned.length; i++) {
+        await addHotRecommend(hotPicks.pinned[i], i)
+      }
+    }
+    await loadHotPicks()
+    saveVisible.value = true
+  } catch (e) {
+    ElMessage.error('保存失败')
+  }
 }
 
 function openLink(link: string) {
@@ -148,7 +190,8 @@ function openLink(link: string) {
 
 onMounted(() => {
   loadBanners()
-  competitions.value = placeholderComps
+  loadCompetitions()
+  loadHotPicks()
 })
 </script>
 
@@ -175,19 +218,19 @@ onMounted(() => {
         <el-table-column label="图片" width="140" align="center">
           <template #default="{ row }">
             <div class="img-placeholder">
-              <span v-if="!row.imageUrl.startsWith('http')">📷</span>
-              <img v-else :src="row.imageUrl" alt="banner" class="img-thumb" />
+              <img v-if="row.imageUrl" :src="row.imageUrl" alt="banner" class="img-thumb" />
+              <span v-else>📷</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column label="链接" min-width="200">
           <template #default="{ row }">
-            <a :href="row.link" target="_blank" class="link-text">{{ row.link }}</a>
+            <a :href="row.linkUrl || row.link" target="_blank" class="link-text">{{ row.linkUrl || row.link }}</a>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="warning" size="small" plain round @click="openLink(row.link)">跳转</el-button>
+            <el-button type="warning" size="small" plain round @click="openLink(row.linkUrl || row.link)">跳转</el-button>
             <el-button type="danger" size="small" plain round @click="openDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -287,7 +330,7 @@ onMounted(() => {
       align-center
     >
       <template #header>
-        <div class="dialog-header"><h3>此页面显示</h3></div>
+        <div class="dialog-header"><h3>确认删除</h3></div>
       </template>
       <div class="dialog-body">
         <p class="dialog-text">确定删除该轮播图吗？删除后无法恢复!</p>
@@ -308,7 +351,7 @@ onMounted(() => {
       align-center
     >
       <template #header>
-        <div class="dialog-header"><h3>此页面显示</h3></div>
+        <div class="dialog-header"><h3>保存成功</h3></div>
       </template>
       <div class="dialog-body">
         <p class="dialog-text">内容保存成功，前台首页已生效!</p>

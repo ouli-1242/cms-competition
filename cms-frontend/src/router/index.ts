@@ -44,86 +44,73 @@ const routes: RouteRecordRaw[] = [
         name: 'GuestRequired',
         component: () => import('@/views/shared/GuestPermission.vue'),
         meta: { title: '权限提示', public: true }
-      }
-    ]
-  },
-  {
-    path: '/student',
-    component: () => import('@/layouts/PublicLayout.vue'),
-    children: [
+      },
+      // 学生页面（统一使用 PublicLayout）
       {
-        path: 'profile',
+        path: 'student/profile',
         name: 'StudentProfile',
         component: () => import('@/views/student/Profile.vue'),
-        meta: { title: '个人中心', requiresAuth: true }
+        meta: { title: '个人中心', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'profile/edit',
+        path: 'student/profile/edit',
         name: 'StudentProfileEdit',
         component: () => import('@/views/student/ProfileEdit.vue'),
-        meta: { title: '编辑个人资料', requiresAuth: true }
+        meta: { title: '编辑个人资料', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'profile/password',
+        path: 'student/profile/password',
         name: 'StudentChangePassword',
         component: () => import('@/views/student/ChangePassword.vue'),
-        meta: { title: '修改密码', requiresAuth: true }
-      }
-    ]
-  },
-  // 学生后台（有侧边栏的页面）
-  {
-    path: '/student-center',
-    component: () => import('@/layouts/StudentLayout.vue'),
-    meta: { roles: ['STUDENT'] },
-    children: [
+        meta: { title: '修改密码', requiresAuth: true, roles: ['STUDENT'] }
+      },
       {
-        path: 'my-registrations',
+        path: 'student-center/my-registrations',
         name: 'MyRegistrations',
         component: () => import('@/views/student/MyRegistrations.vue'),
-        meta: { title: '我的报名' }
+        meta: { title: '我的报名', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'my-teams',
+        path: 'student-center/my-teams',
         name: 'MyTeams',
         component: () => import('@/views/student/MyTeams.vue'),
-        meta: { title: '我的团队' }
+        meta: { title: '我的团队', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'register-individual/:id',
+        path: 'student-center/register-individual/:id',
         name: 'IndividualRegister',
         component: () => import('@/views/student/IndividualRegister.vue'),
-        meta: { title: '个人赛报名' }
+        meta: { title: '个人赛报名', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'team-create',
+        path: 'student-center/team-create',
         name: 'TeamCreate',
         component: () => import('@/views/student/TeamCreate.vue'),
-        meta: { title: '创建团队' }
+        meta: { title: '创建团队', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'team-join',
+        path: 'student-center/team-join',
         name: 'TeamJoin',
         component: () => import('@/views/student/TeamJoin.vue'),
-        meta: { title: '加入团队' }
+        meta: { title: '加入团队', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'team-manage/:id',
+        path: 'student-center/team-manage/:id',
         name: 'TeamManage',
         component: () => import('@/views/student/TeamManage.vue'),
-        meta: { title: '团队管理' }
+        meta: { title: '团队管理', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'team-submit/:id',
+        path: 'student-center/team-submit/:id',
         name: 'TeamSubmit',
         component: () => import('@/views/student/TeamSubmit.vue'),
-        meta: { title: '提交团队报名' }
+        meta: { title: '提交团队报名', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
-        path: 'team-detail/:id',
+        path: 'student-center/team-detail/:id',
         name: 'TeamDetail',
         component: () => import('@/views/student/TeamDetail.vue'),
-        meta: { title: '团队详情' }
+        meta: { title: '团队详情', requiresAuth: true, roles: ['STUDENT'] }
       }
     ]
   },
@@ -139,10 +126,22 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '控制台' }
       },
       {
+        path: 'competitions',
+        name: 'TeacherCompetitions',
+        component: () => import('@/views/teacher/Competitions.vue'),
+        meta: { title: '我的竞赛' }
+      },
+      {
         path: 'audit',
         name: 'TeacherAudit',
         component: () => import('@/views/teacher/Audit.vue'),
         meta: { title: '报名审核' }
+      },
+      {
+        path: 'advisor',
+        name: 'TeacherAdvisor',
+        component: () => import('@/views/teacher/AdvisorInvitations.vue'),
+        meta: { title: '指导邀请' }
       },
       {
         path: 'stats',
@@ -157,6 +156,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/AdminLayout.vue'),
     meta: { roles: ['ADMIN'] },
     children: [
+      {
+        path: '',
+        name: 'AdminDashboard',
+        component: () => import('@/views/shared/Dashboard.vue'),
+        meta: { title: '控制台' }
+      },
       {
         path: 'competitions',
         name: 'AdminCompetitions',
@@ -180,6 +185,18 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminStats',
         component: () => import('@/views/admin/Stats.vue'),
         meta: { title: '数据大屏' }
+      },
+      {
+        path: 'profile-changes',
+        name: 'AdminProfileChanges',
+        component: () => import('@/views/admin/ProfileChanges.vue'),
+        meta: { title: '资料修改审批' }
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/views/admin/Users.vue'),
+        meta: { title: '用户管理' }
       }
     ]
   },

@@ -3,10 +3,6 @@ spring:
     url: jdbc:mysql://rm-xxx.mysql.rds.aliyuncs.com:3306/cms_competition?useUnicode=true&characterEncoding=utf8&useSSL=true
     username: ${DB_USER}
     password: ${DB_PWD}
-  redis:
-    host: ${REDIS_HOST}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PWD}
 
 logging:
   level:

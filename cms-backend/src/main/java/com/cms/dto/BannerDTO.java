@@ -2,6 +2,7 @@ package com.cms.dto;
 
 import lombok.Data;
 import javax.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 
 @Data
 public class BannerDTO {
@@ -10,6 +11,6 @@ public class BannerDTO {
     private String linkUrl;
     private Integer sort;
     private Integer status;
-    private String startTime;
-    private String endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 }

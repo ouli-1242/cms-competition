@@ -2,23 +2,33 @@
 /**
  * 学生个人资料编辑页
  * - 上传头像
- * - 编辑姓名、学院、手机号
- * - 学号、邮箱只读
+ * - 编辑姓名、学院、手机号（直接保存）
+ * - 学号、邮箱可编辑但需管理员审批
  */
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getUserInfo, updateUserInfo } from '@/api/auth'
+import { getUserInfo, updateUserInfo, submitProfileChange } from '@/api/auth'
+import { uploadFile } from '@/api/upload'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const router = useRouter()
 
 const form = reactive({
-  realName: '张明远',
-  college: '计算机科学与技术学院',
-  phone: '13812347899',
-  username: '2024001234',
-  email: 'zhangmingyuan@example.com',
+  realName: '',
+  college: '',
+  phone: '',
+  username: '',
+  email: '',
   avatar: ''
+})
+
+// 记录原始值用于对比
+const original = reactive({
+  username: '',
+  email: ''
 })
 
 const errors = reactive({
@@ -29,6 +39,7 @@ const errors = reactive({
 
 const saving = ref(false)
 const successDialogVisible = ref(false)
+const successMessage = ref('')
 
 function onSuccessConfirm() {
   successDialogVisible.value = false
@@ -51,7 +62,16 @@ const collegeOptions = [
 async function loadUser() {
   try {
     const data: any = await getUserInfo()
-    if (data) Object.assign(form, data)
+    if (data) {
+      form.realName = data.realName || data.nickname || ''
+      form.college = data.college || ''
+      form.phone = data.phone || ''
+      form.username = data.username || ''
+      form.email = data.email || ''
+      form.avatar = data.avatar || ''
+      original.username = form.username
+      original.email = form.email
+    }
   } catch (e) {
     // 静默
   }
@@ -88,13 +108,45 @@ function validate() {
 async function handleSave() {
   if (!validate()) return
   saving.value = true
+
+  const messages: string[] = []
+
   try {
+    // 1. 直接保存常规字段
     await updateUserInfo({
       realName: form.realName,
       college: form.college,
-      phone: form.phone
+      phone: form.phone,
+      avatar: form.avatar || undefined
     })
-    // ElMessage.success('保存成功')
+    messages.push('基本资料已保存')
+
+    // 2. 学号变更 → 提交审批
+    if (form.username !== original.username) {
+      if (!form.username.trim()) {
+        messages.push('学号不能为空，已跳过学号修改')
+      } else {
+        try {
+          await submitProfileChange('username', form.username.trim())
+          messages.push('学号修改已提交审批')
+        } catch {
+          messages.push('学号修改提交失败')
+        }
+      }
+    }
+
+    // 3. 邮箱变更 → 提交审批
+    if (form.email !== original.email) {
+      try {
+        await submitProfileChange('email', form.email.trim())
+        messages.push('邮箱修改已提交审批')
+      } catch {
+        messages.push('邮箱修改提交失败')
+      }
+    }
+
+    await userStore.fetchInfo()
+    successMessage.value = messages.join('；')
     successDialogVisible.value = true
   } catch (e) {
     // 错误已拦截
@@ -114,27 +166,23 @@ function triggerUpload() {
   fileInput.value?.click()
 }
 
-function onFileChange(e: Event) {
+const uploading = ref(false)
+async function onFileChange(e: Event) {
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
-
-  // 校验
-  if (!/^image\/(jpg|jpeg|png)$/.test(file.type)) {
-    ElMessage.error('请上传 JPG/PNG 格式')
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.error('头像不能超过 5MB')
     return
   }
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.error('图片大小不能超过 2MB')
-    return
+  uploading.value = true
+  try {
+    const url = await uploadFile(file, 'avatar')
+    form.avatar = url
+    ElMessage.success('头像上传成功')
+  } finally {
+    uploading.value = false
   }
-
-  // 预览
-  const reader = new FileReader()
-  reader.onload = (ev) => {
-    form.avatar = ev.target?.result as string
-  }
-  reader.readAsDataURL(file)
 }
 
 onMounted(() => {
@@ -144,23 +192,6 @@ onMounted(() => {
 
 <template>
   <div class="edit-page">
-    <!-- 顶部返回栏 -->
-    <div class="page-header">
-      <button class="back-btn" @click="router.back()">
-        <span>←</span>
-      </button>
-      <h1 class="page-title">校园活动管理平台</h1>
-      <div class="user-mini">
-        <div class="avatar">{{ form.realName[0] }}</div>
-        <span class="user-name">{{ form.realName }}</span>
-      </div>
-    </div>
-
-    <!-- 返回链接 -->
-    <div class="back-link" @click="router.push('/student/profile')">
-      <span class="back-icon">←</span>返回个人中心
-    </div>
-
     <!-- 编辑卡 -->
     <div class="edit-card">
       <h2 class="card-title">编辑个人资料</h2>
@@ -230,10 +261,10 @@ onMounted(() => {
           <input
             v-model="form.username"
             type="text"
-            class="form-input disabled"
-            disabled
-            readonly
+            class="form-input"
+            placeholder="请输入学号"
           />
+          <p class="hint-text">修改学号需管理员审批后生效</p>
         </div>
 
         <div class="form-item">
@@ -241,10 +272,10 @@ onMounted(() => {
           <input
             v-model="form.email"
             type="email"
-            class="form-input disabled"
-            disabled
-            readonly
+            class="form-input"
+            placeholder="请输入邮箱"
           />
+          <p class="hint-text">修改邮箱需管理员审批后生效</p>
         </div>
       </div>
 
@@ -257,10 +288,10 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 修改成功弹窗（状态 8） -->
+    <!-- 修改成功弹窗 -->
     <el-dialog
       v-model="successDialogVisible"
-      width="400px"
+      width="420px"
       :show-close="true"
       align-center
     >
@@ -273,8 +304,8 @@ onMounted(() => {
         <div class="alert alert-success">
           <div class="alert-icon">✓</div>
           <div>
-            <p class="alert-title">修改成功</p>
-            <p class="alert-desc">个人资料已更新保存。</p>
+            <p class="alert-title">保存完成</p>
+            <p class="alert-desc">{{ successMessage }}</p>
           </div>
         </div>
       </div>
@@ -294,90 +325,6 @@ onMounted(() => {
   max-width: 1280px;
   margin: 0 auto;
   padding: $space-4 $space-6 $space-8;
-}
-
-// ===== 顶部栏 =====
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-2 0 $space-3;
-}
-
-.back-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: $bg-card;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: $text-regular;
-  box-shadow: $shadow-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all $transition-fast;
-
-  &:hover {
-    background: $primary-50;
-    color: $primary;
-  }
-}
-
-.page-title {
-  margin: 0;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-}
-
-.user-mini {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-1 $space-3;
-  background: $bg-card;
-  border-radius: $radius-full;
-  box-shadow: $shadow-sm;
-}
-
-.user-mini .avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $primary, $primary-hover);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
-
-.user-mini .user-name {
-  font-size: $font-size-sm;
-  color: $text-primary;
-}
-
-// ===== 返回链接 =====
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0 0 $space-3;
-  font-size: $font-size-sm;
-  color: $text-secondary;
-  cursor: pointer;
-  transition: color $transition-fast;
-
-  &:hover {
-    color: $primary;
-  }
-}
-
-.back-icon {
-  font-size: 16px;
 }
 
 // ===== 编辑卡 =====
@@ -496,12 +443,6 @@ onMounted(() => {
     border-color: $danger;
     background: #fef5f5;
   }
-
-  &.disabled {
-    background: $bg-page;
-    color: $text-secondary;
-    cursor: not-allowed;
-  }
 }
 
 .form-select {
@@ -518,6 +459,12 @@ onMounted(() => {
   margin: 0;
   font-size: $font-size-xs;
   color: $danger;
+}
+
+.hint-text {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $warning;
 }
 
 // ===== 操作按钮 =====
@@ -581,9 +528,6 @@ onMounted(() => {
   .avatar-section {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .user-mini .user-name {
-    display: none;
   }
 }
 

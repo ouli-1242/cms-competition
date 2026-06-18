@@ -2,6 +2,7 @@
 /**
  * 学生布局 - 左侧侧边栏
  */
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
@@ -10,10 +11,21 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const menus = [
+  { path: '/', label: '返回首页', icon: 'HomeFilled' },
   { path: '/student/profile', label: '个人中心', icon: 'User' },
-  { path: '/student/my-registrations', label: '我的报名', icon: 'Document' },
-  { path: '/student/my-teams', label: '我的团队', icon: 'UserFilled' }
+  { path: '/student-center/my-registrations', label: '我的报名', icon: 'Document' },
+  { path: '/student-center/my-teams', label: '我的团队', icon: 'UserFilled' }
 ]
+
+/** 前缀匹配：子页面也能正确高亮父菜单 */
+const activeMenu = computed(() => {
+  const path = route.path
+  if (path === '/' || path === '') return '/'
+  if (path.startsWith('/student/profile')) return '/student/profile'
+  if (path.startsWith('/student-center/my-teams') || path.includes('team')) return '/student-center/my-teams'
+  if (path.startsWith('/student-center')) return '/student-center/my-registrations'
+  return path
+})
 
 function logout() {
   userStore.logout()
@@ -25,10 +37,14 @@ function logout() {
   <div class="layout">
     <aside class="sider">
       <div class="logo">
-        <span class="logo-icon">🏆</span>
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff">
+            <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+          </svg>
+        </div>
         <span class="logo-text">竞赛报名系统</span>
       </div>
-      <el-menu :default-active="route.path" router class="menu">
+      <el-menu :default-active="activeMenu" router class="menu">
         <el-menu-item v-for="m in menus" :key="m.path" :index="m.path">
           <el-icon><component :is="m.icon" /></el-icon>
           <span>{{ m.label }}</span>
@@ -37,10 +53,7 @@ function logout() {
     </aside>
     <div class="content">
       <header class="topbar">
-        <div class="user-info">
-          <el-avatar :size="32">{{ userStore.user?.realName?.[0] || 'U' }}</el-avatar>
-          <span>{{ userStore.user?.realName || userStore.user?.username }}（学生）</span>
-        </div>
+        <div></div>
         <el-button text @click="logout">退出</el-button>
       </header>
       <main class="main"><router-view /></main>
