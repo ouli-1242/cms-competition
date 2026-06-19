@@ -77,7 +77,11 @@ public class PublicController {
             }
         }
 
-        wrapper.orderByDesc(Competition::getCreateTime);
+        // 排序：报名中 > 即将开始 > 已截止，同组内按报名截止时间升序
+        wrapper.last("ORDER BY CASE " +
+            "WHEN register_start <= NOW() AND register_end >= NOW() THEN 0 " +
+            "WHEN register_start > NOW() THEN 1 " +
+            "ELSE 2 END, register_end ASC");
         Page<Competition> result = competitionMapper.selectPage(page, wrapper);
 
         // 填充报名人数/团队数

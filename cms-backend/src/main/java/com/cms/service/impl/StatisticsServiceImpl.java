@@ -3,9 +3,11 @@ package com.cms.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.cms.entity.Competition;
 import com.cms.entity.Registration;
+import com.cms.entity.Team;
 import com.cms.entity.TeamRegistration;
 import com.cms.mapper.CompetitionMapper;
 import com.cms.mapper.RegistrationMapper;
+import com.cms.mapper.TeamMapper;
 import com.cms.mapper.TeamRegistrationMapper;
 import com.cms.service.StatisticsService;
 import com.cms.vo.StatisticsVO;
@@ -21,6 +23,17 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired private RegistrationMapper registrationMapper;
     @Autowired private TeamRegistrationMapper teamRegistrationMapper;
     @Autowired private CompetitionMapper competitionMapper;
+    @Autowired private TeamMapper teamMapper;
+
+    /**
+     * 获取已解散团队ID列表，用于排除已解散团队的报名统计
+     */
+    private List<Long> getDissolvedTeamIds() {
+        LambdaQueryWrapper<Team> w = new LambdaQueryWrapper<>();
+        w.isNotNull(Team::getDissolvedAt).select(Team::getId);
+        List<Long> ids = teamMapper.selectList(w).stream().map(Team::getId).collect(Collectors.toList());
+        return ids.isEmpty() ? null : ids;
+    }
 
     @Override
     public StatisticsVO overview(Long teacherId) {
@@ -35,6 +48,11 @@ public class StatisticsServiceImpl implements StatisticsService {
             if (compIds.isEmpty()) compIds.add(-1L); // no match
             w1.in(Registration::getCompetitionId, compIds);
             w2.in(TeamRegistration::getCompetitionId, compIds);
+        }
+        // 排除已解散团队
+        List<Long> dissolvedIds = getDissolvedTeamIds();
+        if (dissolvedIds != null) {
+            w2.notIn(TeamRegistration::getTeamId, dissolvedIds);
         }
         long indivTotal = registrationMapper.selectCount(w1);
         long teamTotal = teamRegistrationMapper.selectCount(w2);
@@ -70,29 +88,34 @@ public class StatisticsServiceImpl implements StatisticsService {
     public StatisticsVO competitionStat(Long competitionId) {
         StatisticsVO vo = new StatisticsVO();
         vo.setCompetitionCount(1L);
+
+        List<Long> dissolvedIds = getDissolvedTeamIds();
+
+        LambdaQueryWrapper<TeamRegistration> baseTeamQuery = new LambdaQueryWrapper<TeamRegistration>()
+            .eq(TeamRegistration::getCompetitionId, competitionId);
+        if (dissolvedIds != null) {
+            baseTeamQuery.notIn(TeamRegistration::getTeamId, dissolvedIds);
+        }
+
         long indiv = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
             .eq(Registration::getCompetitionId, competitionId));
-        long team = teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
-            .eq(TeamRegistration::getCompetitionId, competitionId));
+        long team = teamRegistrationMapper.selectCount(baseTeamQuery);
         vo.setIndividualCount((int) indiv);
         vo.setTeamCount((int) team);
         vo.setTotalCount((int) (indiv + team));
         long passed = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                 .eq(Registration::getCompetitionId, competitionId).eq(Registration::getStatus, 1))
-            + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
-                .eq(TeamRegistration::getCompetitionId, competitionId).eq(TeamRegistration::getStatus, 1));
+            + teamRegistrationMapper.selectCount(baseTeamQuery.clone().eq(TeamRegistration::getStatus, 1));
         vo.setPassedCount((int) passed);
 
         long pending = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                 .eq(Registration::getCompetitionId, competitionId).eq(Registration::getStatus, 0))
-            + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
-                .eq(TeamRegistration::getCompetitionId, competitionId).eq(TeamRegistration::getStatus, 0));
+            + teamRegistrationMapper.selectCount(baseTeamQuery.clone().eq(TeamRegistration::getStatus, 0));
         vo.setPendingCount((int) pending);
 
         long rejected = registrationMapper.selectCount(new LambdaQueryWrapper<Registration>()
                 .eq(Registration::getCompetitionId, competitionId).eq(Registration::getStatus, 2))
-            + teamRegistrationMapper.selectCount(new LambdaQueryWrapper<TeamRegistration>()
-                .eq(TeamRegistration::getCompetitionId, competitionId).eq(TeamRegistration::getStatus, 2));
+            + teamRegistrationMapper.selectCount(baseTeamQuery.clone().eq(TeamRegistration::getStatus, 2));
         vo.setRejectedCount((int) rejected);
 
         vo.setPassRate(vo.getTotalCount() == 0 ? 0.0 : passed * 100.0 / vo.getTotalCount());

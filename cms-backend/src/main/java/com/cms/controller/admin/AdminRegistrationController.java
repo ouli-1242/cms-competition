@@ -104,6 +104,7 @@ public class AdminRegistrationController {
         @RequestParam(required = false) Integer status) {
         Page<TeamRegistration> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<TeamRegistration> wrapper = new LambdaQueryWrapper<>();
+        wrapper.inSql(TeamRegistration::getTeamId, "SELECT id FROM team WHERE dissolved_at IS NULL");
         if (competitionId != null) wrapper.eq(TeamRegistration::getCompetitionId, competitionId);
         if (status != null) wrapper.eq(TeamRegistration::getStatus, status);
         wrapper.orderByDesc(TeamRegistration::getRegisterTime);

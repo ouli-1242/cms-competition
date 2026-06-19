@@ -160,6 +160,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             map.put("members", members);
             map.put("myRole", m.getRole());
             map.put("memberStatus", m.getStatus());
+
+            // 团队报名审核状态
+            TeamRegistration reg = teamRegistrationMapper.selectOne(new LambdaQueryWrapper<TeamRegistration>()
+                .eq(TeamRegistration::getTeamId, team.getId())
+                .eq(TeamRegistration::getCompetitionId, team.getCompetitionId())
+                .orderByDesc(TeamRegistration::getRegisterTime)
+                .last("LIMIT 1"));
+            map.put("registrationStatus", reg != null ? reg.getStatus() : null);
+
             result.add(map);
         }
         return result;

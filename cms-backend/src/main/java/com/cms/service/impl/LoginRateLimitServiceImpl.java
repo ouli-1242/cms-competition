@@ -1,27 +1,56 @@
 package com.cms.service.impl;
 
+import com.cms.common.exception.BusinessException;
 import com.cms.service.LoginRateLimitService;
 import org.springframework.stereotype.Service;
 
-/**
- * 登录限流服务（无 Redis 时为空实现，不做任何限流）
- * 如需限流功能，请安装 Redis 并恢复 Redis 相关实现
- */
+import java.util.concurrent.ConcurrentHashMap;
+
 @Service
 public class LoginRateLimitServiceImpl implements LoginRateLimitService {
 
+    private static final int MAX_FAILURES = 5;
+    private static final long LOCK_DURATION_MS = 15 * 60 * 1000L;
+
+    private final ConcurrentHashMap<String, FailureInfo> failureMap = new ConcurrentHashMap<>();
+
     @Override
     public void checkRateLimit(String username) {
-        // 无 Redis，不做限流检查
+        FailureInfo info = failureMap.get(username);
+        if (info != null && info.failCount >= MAX_FAILURES) {
+            long elapsed = System.currentTimeMillis() - info.firstFailTime;
+            if (elapsed < LOCK_DURATION_MS) {
+                int remainMinutes = (int) Math.ceil((LOCK_DURATION_MS - elapsed) / 60000.0);
+                throw new BusinessException("登录失败次数过多，请" + remainMinutes + "分钟后再试");
+            }
+            // 锁定时间已过，清除记录
+            failureMap.remove(username);
+        }
     }
 
     @Override
     public void recordFailure(String username) {
-        // 无 Redis，不记录失败次数
+        failureMap.compute(username, (key, existing) -> {
+            if (existing == null) {
+                return new FailureInfo(1, System.currentTimeMillis());
+            }
+            existing.failCount++;
+            return existing;
+        });
     }
 
     @Override
     public void clearFailure(String username) {
-        // 无 Redis，不清除失败计数
+        failureMap.remove(username);
+    }
+
+    private static class FailureInfo {
+        int failCount;
+        long firstFailTime;
+
+        FailureInfo(int failCount, long firstFailTime) {
+            this.failCount = failCount;
+            this.firstFailTime = firstFailTime;
+        }
     }
 }

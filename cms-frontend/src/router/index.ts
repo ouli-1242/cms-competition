@@ -71,6 +71,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '我的报名', requiresAuth: true, roles: ['STUDENT'] }
       },
       {
+        path: 'student-center/registration-detail/:id',
+        name: 'RegistrationDetail',
+        component: () => import('@/views/student/RegistrationDetail.vue'),
+        meta: { title: '报名详情', requiresAuth: true, roles: ['STUDENT'] }
+      },
+      {
         path: 'student-center/my-teams',
         name: 'MyTeams',
         component: () => import('@/views/student/MyTeams.vue'),
