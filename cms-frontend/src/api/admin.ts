@@ -175,3 +175,14 @@ export function getUsers(params: {
 }) {
   return request.get('/admin/user/page', { params })
 }
+
+/** 创建教师账号 POST /api/admin/user */
+export function createTeacher(data: {
+  username: string
+  realName?: string
+  college?: string
+  phone?: string
+  email?: string
+}) {
+  return request.post('/admin/user', data)
+}

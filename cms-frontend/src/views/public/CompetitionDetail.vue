@@ -132,11 +132,6 @@ async function loadData() {
 
 // ====== 报名状态判定 ======
 const regState = computed(() => {
-  // 未登录
-  if (!userStore.isLoggedIn) {
-    return { code: 'login_required', label: '登录后报名', disabled: false, color: 'primary' }
-  }
-
   const c = competition.value
   if (!c) return { code: 'loading', label: '加载中', disabled: true, color: 'default' }
 
@@ -144,15 +139,21 @@ const regState = computed(() => {
   const start = new Date(c.registerStart).getTime()
   const end = new Date(c.registerEnd).getTime()
 
-  // 报名截止
+  // 报名截止（不受登录状态影响）
   if (now > end) {
     return { code: 'ended', label: '报名已截止', disabled: true, color: 'default' }
   }
-  // 未开始
+  // 未开始（不受登录状态影响）
   if (now < start) {
     return { code: 'not_started', label: '报名未开始', disabled: true, color: 'default' }
   }
-  // 报名中
+
+  // 报名中 - 未登录提示登录
+  if (!userStore.isLoggedIn) {
+    return { code: 'login_required', label: '登录后报名', disabled: false, color: 'primary' }
+  }
+
+  // 报名中 - 已登录
   if (isTeamCompetition.value) {
     return { code: 'registering_team', label: '团队报名', disabled: false, color: 'primary' }
   }

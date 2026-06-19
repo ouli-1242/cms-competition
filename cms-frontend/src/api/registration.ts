@@ -37,13 +37,29 @@ export function cancelRegistration(id: number) {
   return request.delete(`/student/registration/${id}`)
 }
 
+/** 报名详情 GET /api/student/registration/{id} */
+export function getRegistrationDetail(id: number) {
+  return request.get(`/student/registration/${id}`)
+}
+
+/** 编辑报名 PUT /api/student/registration/{id} */
+export function updateRegistration(id: number, description?: string, attachment?: string) {
+  return request.put(`/student/registration/${id}`, null, { params: { description, attachment } })
+}
+
+/** 团队报名详情 GET /api/student/registration/team/{id} */
+export function getTeamRegDetail(id: number) {
+  return request.get(`/student/registration/team/${id}`)
+}
+
+/** 编辑团队报名 PUT /api/student/registration/team/{id} */
+export function updateTeamRegistration(id: number, description?: string, attachment?: string) {
+  return request.put(`/student/registration/team/${id}`, null, { params: { description, attachment } })
+}
+
 // --- 以下接口后端不存在，暂时注释 ---
 // export function checkMyRegistration(competitionId: number) {
 //   return request.get<boolean>('/student/registration/check', { params: { competitionId } })
-// }
-
-// export function getRegistrationDetail(id: number) {
-//   return request.get(`/student/registration/${id}`)
 // }
 
 // ===== 教师审核报名 (TeacherRegistrationController /api/teacher) =====

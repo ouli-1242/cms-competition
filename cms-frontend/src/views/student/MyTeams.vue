@@ -43,7 +43,22 @@ async function loadTeams() {
     teams.value = list.map((item: any) => {
       const t = item.team
       const isPending = item.memberStatus === 0
-      const teamStatusMap: Record<number, string> = { 0: '待提交', 1: '审核中', 2: '已通过', 3: '已拒绝' }
+      // registrationStatus: null=未提交, 0=待审核, 1=已通过, 2=已拒绝
+      const regStatus = item.registrationStatus
+      let statusText: string
+      if (isPending) {
+        statusText = '待队长审核'
+      } else if (regStatus === null || regStatus === undefined) {
+        statusText = t.status === 0 ? '未提交' : t.status === 2 ? '已锁定' : '未提交'
+      } else if (regStatus === 0) {
+        statusText = '审核中'
+      } else if (regStatus === 1) {
+        statusText = '已通过'
+      } else if (regStatus === 2) {
+        statusText = '已拒绝'
+      } else {
+        statusText = '未知'
+      }
       return {
         id: t.id,
         title: t.teamName || '团队',
@@ -54,7 +69,7 @@ async function loadTeams() {
         inviteCode: t.inviteCode || '',
         status: t.status,
         isPending,
-        statusText: isPending ? '待审核' : (teamStatusMap[t.status] || '未知')
+        statusText
       }
     })
   } catch (e) {
@@ -69,7 +84,7 @@ function roleText(r: string) {
 }
 
 function statusType(s: string) {
-  const m: any = { '审核中': 'warning', '已通过': 'success', '已拒绝': 'danger', '已提交': 'primary', '待审核': 'warning' }
+  const m: any = { '审核中': 'warning', '已通过': 'success', '已拒绝': 'danger', '已锁定': 'info', '未提交': 'info', '待队长审核': 'warning' }
   return m[s] || 'info'
 }
 

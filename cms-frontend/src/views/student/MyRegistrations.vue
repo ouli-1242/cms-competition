@@ -152,8 +152,8 @@ function closeCancelDialog() {
   cancelTarget.value = null
 }
 
-function handleView(row: any) {
-  router.push(`/competitions/${row.competitionId}`)
+function handleView(row: any, type: 'individual' | 'team' = 'individual') {
+  router.push(`/student-center/registration-detail/${row.id}?type=${type}`)
 }
 
 function getStatusInfo(status: number) {
@@ -226,8 +226,18 @@ onMounted(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" align="center" fixed="right">
+        <el-table-column label="操作" width="200" align="center" fixed="right">
           <template #default="{ row }">
+            <el-button
+              v-if="row.status === 0"
+              type="primary"
+              size="small"
+              plain
+              round
+              @click="handleView(row, 'individual')"
+            >
+              查看详情
+            </el-button>
             <el-button
               v-if="row.status === 0"
               type="danger"
@@ -244,9 +254,9 @@ onMounted(() => {
               size="small"
               plain
               round
-              @click="handleView(row)"
+              @click="handleView(row, 'individual')"
             >
-              查看报名
+              查看详情
             </el-button>
           </template>
         </el-table-column>
@@ -307,9 +317,9 @@ onMounted(() => {
               size="small"
               plain
               round
-              @click="handleView(row)"
+              @click="handleView(row, 'team')"
             >
-              查看报名
+              查看详情
             </el-button>
           </template>
         </el-table-column>

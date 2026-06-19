@@ -106,6 +106,7 @@ public class TeacherRegistrationController {
         if (ids.isEmpty()) return Result.success(page);
 
         LambdaQueryWrapper<TeamRegistration> wrapper = new LambdaQueryWrapper<>();
+        wrapper.inSql(TeamRegistration::getTeamId, "SELECT id FROM team WHERE dissolved_at IS NULL");
         if (competitionId != null) {
             if (!ids.contains(competitionId)) throw new BusinessException(403, "您不是该竞赛的指导老师");
             wrapper.eq(TeamRegistration::getCompetitionId, competitionId);

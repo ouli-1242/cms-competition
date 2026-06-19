@@ -5,7 +5,8 @@
  * - 筛选：关键词搜索 + 角色下拉
  */
 import { ref, reactive, onMounted } from 'vue'
-import { getUsers } from '@/api/admin'
+import { ElMessage } from 'element-plus'
+import { getUsers, createTeacher } from '@/api/admin'
 
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -77,6 +78,50 @@ function openDetail(row: any) {
   detailVisible.value = true
 }
 
+// 创建教师弹窗
+const createVisible = ref(false)
+const createLoading = ref(false)
+const createForm = reactive({
+  username: '',
+  realName: '',
+  college: '',
+  phone: '',
+  email: ''
+})
+
+function openCreate() {
+  createForm.username = ''
+  createForm.realName = ''
+  createForm.college = ''
+  createForm.phone = ''
+  createForm.email = ''
+  createVisible.value = true
+}
+
+async function handleCreate() {
+  if (!createForm.username.trim()) {
+    ElMessage.warning('请输入账号')
+    return
+  }
+  createLoading.value = true
+  try {
+    await createTeacher({
+      username: createForm.username.trim(),
+      realName: createForm.realName || undefined,
+      college: createForm.college || undefined,
+      phone: createForm.phone || undefined,
+      email: createForm.email || undefined
+    })
+    ElMessage.success('创建成功，默认密码：123456')
+    createVisible.value = false
+    loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '创建失败')
+  } finally {
+    createLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadData()
 })
@@ -86,6 +131,7 @@ onMounted(() => {
   <div class="page">
     <div class="page-header">
       <h2 class="page-title">用户管理</h2>
+      <button class="btn-create" @click="openCreate">创建教师</button>
     </div>
 
     <!-- 筛选 -->
@@ -221,6 +267,47 @@ onMounted(() => {
       <template #footer>
         <div class="dialog-footer center">
           <button class="btn-ok" @click="detailVisible = false">关闭</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 创建教师弹窗 -->
+    <el-dialog
+      v-model="createVisible"
+      title="创建教师账号"
+      width="480px"
+      :show-close="true"
+      align-center
+    >
+      <div class="create-form">
+        <div class="form-row">
+          <label class="form-label">账号 <span class="required">*</span></label>
+          <input v-model="createForm.username" class="form-input" placeholder="登录账号（必填）" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">姓名</label>
+          <input v-model="createForm.realName" class="form-input" placeholder="真实姓名" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">学院</label>
+          <input v-model="createForm.college" class="form-input" placeholder="所属学院" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">手机号</label>
+          <input v-model="createForm.phone" class="form-input" placeholder="手机号" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">邮箱</label>
+          <input v-model="createForm.email" class="form-input" placeholder="邮箱地址" />
+        </div>
+        <p class="form-tip">默认密码：123456，创建后教师可自行修改</p>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <button class="btn-cancel" @click="createVisible = false">取消</button>
+          <button class="btn-confirm" :disabled="createLoading" @click="handleCreate">
+            {{ createLoading ? '创建中...' : '确认创建' }}
+          </button>
         </div>
       </template>
     </el-dialog>
@@ -439,5 +526,88 @@ onMounted(() => {
     border-color: $primary;
     color: $primary;
   }
+}
+
+// ===== 创建教师按钮 =====
+.btn-create {
+  height: 36px;
+  padding: 0 $space-5;
+  border: none;
+  background: linear-gradient(135deg, $primary, $primary-hover);
+  color: #fff;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+  &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3); }
+}
+
+// ===== 创建表单弹窗 =====
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-2 0;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.form-label {
+  width: 70px;
+  font-size: $font-size-sm;
+  color: $text-regular;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.required {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+.form-tip {
+  margin: $space-1 0 0 70px;
+  font-size: 12px;
+  color: $text-secondary;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: center;
+  gap: $space-3;
+  padding-top: $space-3;
+}
+
+.btn-cancel {
+  height: 36px;
+  padding: 0 $space-6;
+  border: 1px solid $border-base;
+  background: $bg-card;
+  color: $text-regular;
+  font-size: $font-size-sm;
+  border-radius: $radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+  &:hover { background: $bg-page; border-color: $primary; color: $primary; }
+}
+
+.btn-confirm {
+  height: 36px;
+  padding: 0 $space-6;
+  border: none;
+  background: linear-gradient(135deg, $primary, $primary-hover);
+  color: #fff;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+  &:hover { transform: translateY(-1px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 }
 </style>

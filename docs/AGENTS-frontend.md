@@ -43,7 +43,9 @@ cms-frontend/
     │   ├── public.ts               # 公开接口（轮播、热门、竞赛列表）
     │   ├── admin.ts                # 管理员接口
     │   ├── registration.ts         # 报名（学生 + 教师）
-    │   └── team.ts                 # 团队操作
+    │   ├── team.ts                 # 团队操作
+    │   ├── notification.ts         # 站内通知
+    │   └── upload.ts               # 文件上传
     │
     ├── router/
     │   └── index.ts                # 路由表 + 导航守卫
@@ -52,22 +54,23 @@ cms-frontend/
     │   └── user.ts                 # Pinia 用户状态（token、user、role）
     │
     ├── layouts/                    # 布局壳（按角色拆分）
-    │   ├── PublicLayout.vue        # 公共布局（顶部导航 + 底部 Tab）
+    │   ├── PublicLayout.vue        # 公共布局（顶部导航 + 可折叠侧栏）
     │   ├── StudentLayout.vue       # 学生布局（左侧菜单）
-    │   ├── TeacherLayout.vue       # 教师布局（左侧菜单，橙色主题）
+    │   ├── TeacherLayout.vue       # 教师布局（左侧菜单，蓝色主题）
     │   └── AdminLayout.vue         # 管理员布局（左侧菜单，蓝色主题）
     │
     ├── views/                      # 页面（按角色分组）
     │   ├── auth/                   # 登录、注册
     │   ├── public/                 # 首页、竞赛列表、竞赛详情
-    │   ├── student/                # 学生功能页（11 个）
-    │   ├── teacher/                # 教师功能页（审核、统计）
-    │   ├── admin/                  # 管理员功能页（竞赛、报名、轮播、统计）
+    │   ├── student/                # 学生功能页（12 个）
+    │   ├── teacher/                # 教师功能页（竞赛、审核、指导邀请、统计）
+    │   ├── admin/                  # 管理员功能页（竞赛、报名、轮播、统计、用户、资料变更）
     │   ├── shared/                 # 多角色共用页（Dashboard、GuestPermission）
     │   └── NotFound.vue            # 404
     │
     ├── components/                 # 公共组件
-    │   └── PagePlaceholder.vue     # 占位组件
+    │   ├── PagePlaceholder.vue     # 占位组件
+    │   └── NotificationBell.vue    # 通知铃铛（未读计数 + 下拉列表）
     │
     └── styles/
         ├── variables.scss          # 设计系统变量（颜色、间距、阴影、字号等）
@@ -171,7 +174,7 @@ const fetchData = async () => {
 |----------|------|----------|
 | `/login`、`/register` | 独立页面 | 无 |
 | `/`、`/competitions` | PublicLayout | 无 |
-| `/student-center/*` | StudentLayout | STUDENT |
+| `/student/*`、`/student-center/*` | PublicLayout | STUDENT |
 | `/teacher/*` | TeacherLayout | TEACHER |
 | `/admin/*` | AdminLayout | ADMIN |
 
@@ -295,7 +298,7 @@ export interface Competition {
   title: string;
   category: string;
   type: number;        // 1=个人, 2=团队
-  status: number;      // 0=未开始, 1=报名中, 2=进行中, 3=已结束
+  status: number;      // 0=下架, 1=上架
   // ...
 }
 

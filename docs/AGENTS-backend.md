@@ -35,6 +35,7 @@ cms-backend/
 │   │   └── util/                        # 工具（JwtUtil, SecurityUtil）
 │   │
 │   ├── config/                          # 全局配置
+│   │   ├── JacksonConfig.java           # 日期序列化配置
 │   │   ├── MybatisPlusConfig.java       # 分页插件
 │   │   ├── MyMetaObjectHandler.java     # 自动填充 createTime/updateTime
 │   │   ├── SecurityConfig.java          # Spring Security 配置
@@ -63,18 +64,22 @@ cms-backend/
 │   ├── entity/                          # 数据库实体
 │   │   ├── User.java, Competition.java, Team.java
 │   │   ├── TeamMember.java, Registration.java, TeamRegistration.java
-│   │   ├── Banner.java, HotRecommend.java, Message.java, TeamLog.java
+│   │   ├── Banner.java, HotRecommend.java, Message.java
+│   │   ├── TeamAdvisor.java, ProfileChangeRequest.java
 │   │
 │   ├── mapper/                          # MyBatis-Plus Mapper
-│   │   └── XxxMapper.java（共 10 个）
+│   │   └── XxxMapper.java（共 11 个）
 │   │
 │   ├── service/                         # 业务接口
-│   │   ├── XxxService.java（共 10 个接口）
+│   │   ├── XxxService.java（共 11 个接口）
 │   │   └── impl/                        # 业务实现
-│   │       └── XxxServiceImpl.java（共 10 个实现）
+│   │       └── XxxServiceImpl.java（共 11 个实现）
 │   │
 │   └── vo/                              # 视图对象（复杂查询返回）
-│       └── StatisticsVO.java
+│       ├── StatisticsVO.java
+│       ├── RegistrationVO.java
+│       ├── TeamRegistrationVO.java
+│       └── AdvisorInvitationVO.java
 │
 └── src/main/resources/
     ├── application.yml                  # 基础配置
@@ -171,8 +176,8 @@ is_deleted TINYINT DEFAULT 0 COMMENT '软删除标记'
 ### 6.3 日期格式
 
 - 日期统一 `yyyy-MM-dd HH:mm:ss`
-- Java 侧使用 `LocalDateTime`，Jackson 自动格式化
-- application.yml 已配置 `spring.jackson.date-format` 和 `spring.jackson.time-zone`
+- Java 侧使用 `LocalDateTime`，由 `JacksonConfig` 全局配置序列化格式
+- application.yml 已配置 `spring.jackson.date-format` 和 `spring.jackson.time-zone`（对 `java.util.Date` 生效）
 
 ## 7. 异常处理
 

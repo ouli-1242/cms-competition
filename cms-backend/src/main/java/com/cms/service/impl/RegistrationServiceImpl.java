@@ -60,7 +60,9 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
         this.save(r);
 
         // 异步通知管理员
-        notificationService.asyncNotify(c.getPublisherId(), "新报名：用户 " + userId + " 报名了 " + c.getTitle(), "REGISTRATION");
+        User user = userMapper.selectById(userId);
+        String userName = (user != null && user.getRealName() != null) ? user.getRealName() : String.valueOf(userId);
+        notificationService.asyncNotify(c.getPublisherId(), "新报名：" + userName + " 报名了 " + c.getTitle(), "REGISTRATION");
         return r;
     }
 
