@@ -23,6 +23,12 @@ public class CommonController {
 
     private static final List<String> ALLOWED_BIZ = Arrays.asList("avatar", "competition", "attachment", "common", "banner", "cover");
 
+    private static final List<String> ALLOWED_EXT = Arrays.asList(
+        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        ".txt", ".zip", ".rar"
+    );
+
     @PostMapping("/upload")
     public Result<String> upload(@RequestParam("file") MultipartFile file,
                                   @RequestParam(defaultValue = "common") String biz) throws IOException {
@@ -42,7 +48,11 @@ public class CommonController {
         String ext = "";
         int dotIndex = originalFilename.lastIndexOf(".");
         if (dotIndex >= 0) {
-            ext = originalFilename.substring(dotIndex);
+            ext = originalFilename.substring(dotIndex).toLowerCase();
+        }
+        // 校验扩展名白名单
+        if (!ext.isEmpty() && !ALLOWED_EXT.contains(ext)) {
+            return Result.error("不支持的文件类型：" + ext);
         }
         // 路径：/biz/yyyy-MM-dd/uuid.ext
         String dateDir = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());

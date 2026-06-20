@@ -54,7 +54,7 @@ public class PublicController {
         @RequestParam(required = false) Boolean excludeEnded) {
         Page<Competition> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Competition> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Competition::getStatus, 1).eq(Competition::getIsDeleted, 0);
+        wrapper.eq(Competition::getStatus, 1);
         if (keyword  != null && !keyword.isEmpty())  wrapper.like(Competition::getTitle,    keyword);
         if (category != null && !category.isEmpty()) wrapper.eq (Competition::getCategory, category);
         if (type     != null) wrapper.eq(Competition::getType, type);
