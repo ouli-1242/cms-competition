@@ -12,4 +12,5 @@ public class RegisterDTO {
     private String realName;
     private String college;
     private String phone;
+    private String email;
 }

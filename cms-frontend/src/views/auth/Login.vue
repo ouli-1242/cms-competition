@@ -35,7 +35,6 @@ const passwordVisible = ref(false)
 // ====== 加载与锁定 ======
 const loading = ref(false)
 const lockDialogVisible = ref(false)
-const failedCount = ref(0) // 失败次数
 const MAX_FAIL = 5
 const LOCK_MINUTES = 15
 let lockTimer: number | null = null
@@ -85,7 +84,6 @@ async function handleLogin() {
   try {
     await userStore.login(form.username, form.password)
     ElMessage.success('登录成功')
-    failedCount.value = 0
     const redirect = (route.query.redirect as string) || ''
     if (redirect) {
       router.push(redirect)
@@ -93,13 +91,11 @@ async function handleLogin() {
       router.push('/')
     }
   } catch (err: any) {
-    failedCount.value++
-    if (failedCount.value >= MAX_FAIL) {
+    const msg = err?.message || '账号或密码错误，请重新输入'
+    if (msg.includes('登录失败次数过多')) {
       showLockDialog()
     } else {
-      showErrorBanner(
-        err?.message || '账号或密码错误，请重新输入'
-      )
+      showErrorBanner(msg)
     }
   } finally {
     loading.value = false
@@ -116,7 +112,6 @@ function showLockDialog() {
     if (lockCountdown.value <= 0) {
       clearInterval(lockTimer!)
       lockTimer = null
-      failedCount.value = 0
       lockDialogVisible.value = false
       ElMessage.info('账号已解锁，请重新登录')
     }

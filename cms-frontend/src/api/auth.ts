@@ -22,7 +22,9 @@ export interface RegisterParams {
   nickname?: string
   realName?: string
   school?: string
+  college?: string
   phone?: string
+  email?: string
 }
 
 export function login(data: LoginParams) {

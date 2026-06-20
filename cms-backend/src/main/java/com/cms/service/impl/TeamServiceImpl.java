@@ -380,6 +380,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     }
 
     private String generateInviteCode() {
-        return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        for (int i = 0; i < 10; i++) {
+            String code = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+            Long count = this.count(new LambdaQueryWrapper<Team>().eq(Team::getInviteCode, code));
+            if (count == 0) return code;
+        }
+        throw new BusinessException("邀请码生成失败，请重试");
     }
 }

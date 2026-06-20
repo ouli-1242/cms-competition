@@ -182,7 +182,8 @@ async function handleRegister() {
       password: form.password,
       realName: form.realName,
       college: form.college,
-      phone: form.phone
+      phone: form.phone,
+      email: form.email
     })
     successDialogVisible.value = true
     // 3 秒后自动跳转

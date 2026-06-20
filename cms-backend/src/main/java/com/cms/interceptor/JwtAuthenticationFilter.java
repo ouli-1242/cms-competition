@@ -25,7 +25,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+            throws javax.servlet.ServletException, java.io.IOException {
         String header = req.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -43,10 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // token 过期或无效，放行到后续 security 拦截器返回 401
             }
         }
-        try {
-            chain.doFilter(req, res);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        chain.doFilter(req, res);
     }
 }

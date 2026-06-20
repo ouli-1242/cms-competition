@@ -80,8 +80,7 @@ public class HotRecommendServiceImpl implements HotRecommendService {
 
         List<Competition> comps = competitionMapper.selectList(new LambdaQueryWrapper<Competition>()
             .in(Competition::getId, compIds)
-            .eq(Competition::getStatus, 1)
-            .eq(Competition::getIsDeleted, 0));
+            .eq(Competition::getStatus, 1));
         Map<Long, Competition> map = comps.stream().collect(Collectors.toMap(Competition::getId, c -> c));
         return compIds.stream().map(map::get).filter(Objects::nonNull).collect(Collectors.toList());
     }
