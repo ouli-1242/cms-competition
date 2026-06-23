@@ -17,6 +17,7 @@
 | 工具库 | Hutool | 5.8.25 |
 | 表格导出 | EasyExcel | 3.3.3 |
 | 简化 | Lombok | 默认 |
+| API 文档 | springdoc-openapi | 1.8.0 |
 
 ## 2. 项目结构
 
@@ -113,7 +114,7 @@ mapper (数据访问，继承 BaseMapper<T>)
 - **CSRF**：禁用（前后端分离 + JWT）
 - **Session**：STATELESS
 - **CORS**：允许所有来源（开发阶段），生产环境须收紧
-- **公开端点**：`/api/auth/login`、`/api/auth/register`、`/api/auth/logout`、`/api/common/**`、`/api/competition/public/**`、`/api/banner/public/**`、`/api/hot-recommend/public/**`、`/file/**`
+- **公开端点**：`/api/auth/login`、`/api/auth/register`、`/api/auth/logout`、`/api/competition/public/**`、`/api/banner/public/**`、`/api/hot-recommend/public/**`、`/file/**`、`/error`、`/v3/api-docs/**`、`/swagger-ui/**`、`/swagger-ui.html`
 - **其余端点**：需认证 + JWT Token
 
 ### 4.2 JWT
@@ -198,10 +199,11 @@ is_deleted TINYINT DEFAULT 0 COMMENT '软删除标记'
 
 ## 8. 文件上传
 
-- 接口：`POST /api/common/upload`，参数 `file` + `biz`（业务类型）
+- 接口：`POST /api/common/upload`，参数 `file` + `biz`（业务类型，默认 common）
 - 存储路径：`D:/upload/cms/`（由 `cms.upload.path` 配置）
 - 访问路径：`/file/**`（WebMvcConfig 映射）
-- 限制：单文件 ≤ 50MB，`biz` 参数使用白名单校验
+- 目录结构：`{biz}/{yyyy-MM-dd}/{uuid}.{ext}`
+- 限制：单文件 ≤ 50MB；`biz` 白名单：avatar/competition/attachment/common/banner/cover；扩展名白名单：图片/jpg-png-gif-webp、文档/pdf-docx-xlsx、压缩/zip-rar 等
 
 ## 9. 命名规范
 
@@ -238,5 +240,4 @@ mvn test                # 单元测试（如有）
 mvn spring-boot:run     # 实际启动验证
 ```
 
-> **Windows 注意**：含中文路径的项目须用 PowerShell 执行 Maven，cmd 可能编码失败。  
-> IDEA 自带 Maven 路径：`"D:\Program Files\JetBrains\IDEA\plugins\maven\lib\maven3\bin\mvn.cmd"`
+> **Windows 注意**：含中文路径的项目须用 PowerShell 执行 Maven，cmd 可能编码失败。

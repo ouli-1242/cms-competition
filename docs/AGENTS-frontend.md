@@ -208,7 +208,9 @@ interface UserInfo {
   username: string;
   role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'VISITOR';
   realName?: string;
+  nickname?: string;
   studentNo?: string;
+  school?: string;
   college?: string;
   phone?: string;
   email?: string;
