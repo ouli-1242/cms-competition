@@ -64,7 +64,10 @@ public class SecurityConfig {
                     "/api/banner/public/**",
                     "/api/hot-recommend/public/**",
                     "/file/**",
-                    "/error"
+                    "/error",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
                 ).permitAll()
                 .anyRequest().authenticated().and()
             .exceptionHandling().authenticationEntryPoint((req, res, ex) -> {

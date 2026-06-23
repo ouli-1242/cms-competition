@@ -4,9 +4,11 @@ dist/
 target/
 *.tsbuildinfo
 *.log
+*.err
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
 .env
 .env.local
+.trae/
