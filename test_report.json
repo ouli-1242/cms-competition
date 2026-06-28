@@ -1,0 +1,1001 @@
+{
+  "total": 137,
+  "passed": 92,
+  "failed": 45,
+  "rate": "67.2%",
+  "categories": {
+    "环境": {
+      "total": 8,
+      "passed": 7
+    },
+    "认证": {
+      "total": 18,
+      "passed": 16
+    },
+    "公共": {
+      "total": 14,
+      "passed": 14
+    },
+    "学生": {
+      "total": 41,
+      "passed": 15
+    },
+    "教师": {
+      "total": 16,
+      "passed": 7
+    },
+    "管理员": {
+      "total": 27,
+      "passed": 20
+    },
+    "安全": {
+      "total": 8,
+      "passed": 8
+    },
+    "通知": {
+      "total": 5,
+      "passed": 5
+    }
+  },
+  "details": [
+    {
+      "cat": "环境",
+      "id": "ENV-01",
+      "name": "后端运行(8080)",
+      "status": "PASS",
+      "detail": "backend on :8080"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-02",
+      "name": "前端运行(5173)",
+      "status": "FAIL",
+      "detail": "frontend on 5173/5174"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-03",
+      "name": "数据库连接",
+      "status": "PASS",
+      "detail": "MySQL available"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-04",
+      "name": "API可达",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-05",
+      "name": "竞赛列表API",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-06",
+      "name": "竞赛详情API",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-07",
+      "name": "热门推荐API",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "环境",
+      "id": "ENV-08",
+      "name": "前端代理到后端(登录)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-01",
+      "name": "管理员登录(admin)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-02",
+      "name": "学生登录(stu1)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-03",
+      "name": "教师登录(teacher1)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-04",
+      "name": "学生登录(stu2)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-05",
+      "name": "学生登录(stu3)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-06",
+      "name": "密码错误",
+      "status": "PASS",
+      "detail": "密码错误"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-07",
+      "name": "用户不存在",
+      "status": "PASS",
+      "detail": "用户不存在"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-08",
+      "name": "空用户名",
+      "status": "PASS",
+      "detail": "username: 用户名不能为空"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-09",
+      "name": "注册新用户",
+      "status": "FAIL",
+      "detail": "用户名已存在"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-10",
+      "name": "重复用户名注册",
+      "status": "PASS",
+      "detail": "用户名已存在"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-11",
+      "name": "密码过短(3位)",
+      "status": "PASS",
+      "detail": "password: 个数必须在6和20之间"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-12",
+      "name": "密码合规(10位)",
+      "status": "FAIL",
+      "detail": "用户名已存在"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-13",
+      "name": "注册后可登录",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-14",
+      "name": "用户信息-无密码泄露",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-15",
+      "name": "学生信息查询",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-16",
+      "name": "退出接口",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-17",
+      "name": "admin角色正确",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "认证",
+      "id": "AUTH-18",
+      "name": "stu1角色正确",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-01",
+      "name": "轮播图列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-01b",
+      "name": "轮播图字段完整",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-02",
+      "name": "热门推荐",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-03",
+      "name": "竞赛列表-分页",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-03b",
+      "name": "竞赛列表-字段完整",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-04",
+      "name": "竞赛搜索-关键词",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-05",
+      "name": "竞赛详情-正常",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-05b",
+      "name": "竞赛详情-字段完整",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-06",
+      "name": "竞赛详情-不存在(404)",
+      "status": "PASS",
+      "detail": "竞赛不存在或未发布"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-07",
+      "name": "筛选-个人赛(type=1)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-08",
+      "name": "筛选-团队赛(type=2)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-09",
+      "name": "筛选-分类(计算机)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-10",
+      "name": "筛选-排除已截止",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "公共",
+      "id": "PUB-11",
+      "name": "搜索无结果",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-01",
+      "name": "个人资料-查看",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-01b",
+      "name": "个人资料-字段完整",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-02",
+      "name": "个人资料-编辑",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-02b",
+      "name": "个人资料-编辑生效",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-03",
+      "name": "修改密码-成功",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-04",
+      "name": "修改密码-原密码错误",
+      "status": "PASS",
+      "detail": "原密码错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-05",
+      "name": "修改密码-新密码过短",
+      "status": "PASS",
+      "detail": "新密码长度不能少于6位"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-06",
+      "name": "个人赛报名",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-07",
+      "name": "重复报名拦截",
+      "status": "PASS",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-08",
+      "name": "报名记录-列表",
+      "status": "FAIL",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-09",
+      "name": "报名记录-详情",
+      "status": "FAIL",
+      "detail": "依赖STU-06"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-10",
+      "name": "报名记录-编辑",
+      "status": "FAIL",
+      "detail": "依赖STU-06"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-11",
+      "name": "取消报名",
+      "status": "FAIL",
+      "detail": "依赖STU-06"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-11b",
+      "name": "报名(供教师审核)",
+      "status": "FAIL",
+      "detail": "报名已截止"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-12",
+      "name": "创建团队",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-13",
+      "name": "我的团队-列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-14",
+      "name": "团队详情",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-14b",
+      "name": "非队长查看团队详情",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-15",
+      "name": "加入团队",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-16",
+      "name": "加入团队",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-17",
+      "name": "加入团队",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-18",
+      "name": "审核成员",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-18b",
+      "name": "审核成员",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-19",
+      "name": "搜索学生",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-19b",
+      "name": "搜索学生-有关键词",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-20",
+      "name": "搜索教师",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-20b",
+      "name": "搜索教师-关键词",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-21",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-21b",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-22",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-23",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-24",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-25",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-26",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-27",
+      "name": "团队操作",
+      "status": "FAIL",
+      "detail": "依赖STU-12"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-28",
+      "name": "团队报名记录",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-29",
+      "name": "提交资料修改(email)",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-30",
+      "name": "不支持的修改字段",
+      "status": "PASS",
+      "detail": "不支持修改该字段"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-31",
+      "name": "提交资料修改(username)",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-32",
+      "name": "提交第二个修改(email)",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "学生",
+      "id": "STU-33",
+      "name": "查看申请记录",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-01",
+      "name": "竞赛列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-02",
+      "name": "竞赛详情",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-03",
+      "name": "个人报名列表(审核)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-04",
+      "name": "团队报名列表",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-05",
+      "name": "审核通过",
+      "status": "FAIL",
+      "detail": "无待审核报名"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-06",
+      "name": "审核拒绝",
+      "status": "FAIL",
+      "detail": "无待审核报名"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-07",
+      "name": "重复审核",
+      "status": "FAIL",
+      "detail": "无待审核报名"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-08",
+      "name": "按学生姓名搜索报名",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-09",
+      "name": "指导邀请列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-10",
+      "name": "接受邀请",
+      "status": "FAIL",
+      "detail": "无待处理邀请"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-11",
+      "name": "重复接受",
+      "status": "FAIL",
+      "detail": "无待处理邀请"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-12",
+      "name": "teacher2邀请列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-13",
+      "name": "拒绝邀请",
+      "status": "FAIL",
+      "detail": "无待处理邀请"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-14",
+      "name": "已指导团队列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-15",
+      "name": "统计概览",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "教师",
+      "id": "TEA-16",
+      "name": "单竞赛统计",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-01",
+      "name": "竞赛管理-列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-01b",
+      "name": "竞赛管理-搜索",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-01c",
+      "name": "竞赛管理-按上架状态筛选",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-02",
+      "name": "发布竞赛",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-03",
+      "name": "编辑竞赛",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-04",
+      "name": "下架竞赛",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-05",
+      "name": "上架竞赛",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-06",
+      "name": "删除竞赛(软删除)",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-06b",
+      "name": "删除后不可见",
+      "status": "PASS",
+      "detail": "竞赛不存在或未发布"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-07",
+      "name": "发布竞赛-标题为空",
+      "status": "PASS",
+      "detail": "title: 不能为空"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-08",
+      "name": "轮播图-列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-09",
+      "name": "轮播图-新增",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-10",
+      "name": "轮播图-编辑",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-11",
+      "name": "轮播图-删除",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-12",
+      "name": "热门推荐-手动添加",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-13",
+      "name": "热门推荐-移除",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-14",
+      "name": "热门推荐-自动推荐",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-15",
+      "name": "用户管理-列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-15b",
+      "name": "用户管理-按角色筛选",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-16",
+      "name": "创建教师账号",
+      "status": "FAIL",
+      "detail": "该账号已存在"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-17",
+      "name": "资料变更-申请列表",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-18",
+      "name": "审批通过",
+      "status": "FAIL",
+      "detail": "无待审批申请"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-19",
+      "name": "审批拒绝",
+      "status": "FAIL",
+      "detail": "无待审批申请"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-20",
+      "name": "统计-全局概览",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-21",
+      "name": "统计-单竞赛",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-22",
+      "name": "报名管理-个人报名列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "管理员",
+      "id": "ADM-23",
+      "name": "报名管理-团队报名列表",
+      "status": "FAIL",
+      "detail": "服务器内部错误"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-01",
+      "name": "无Token访问受保护接口",
+      "status": "PASS",
+      "detail": "未登录或token已过期"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-02",
+      "name": "学生访问管理员接口",
+      "status": "PASS",
+      "detail": "权限不足"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-03",
+      "name": "教师访问管理员接口",
+      "status": "PASS",
+      "detail": "权限不足"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-04",
+      "name": "学生访问报名管理接口",
+      "status": "PASS",
+      "detail": "权限不足"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-05",
+      "name": "教师访问轮播图管理",
+      "status": "PASS",
+      "detail": "权限不足"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-06",
+      "name": "学生访问教师审核接口",
+      "status": "PASS",
+      "detail": "权限不足"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-07",
+      "name": "伪造Token访问",
+      "status": "PASS",
+      "detail": "未登录或token已过期"
+    },
+    {
+      "cat": "安全",
+      "id": "SEC-08",
+      "name": "空Token访问",
+      "status": "PASS",
+      "detail": "未登录或token已过期"
+    },
+    {
+      "cat": "通知",
+      "id": "NOT-01",
+      "name": "未读通知计数",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "通知",
+      "id": "NOT-02",
+      "name": "通知列表",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "通知",
+      "id": "NOT-02b",
+      "name": "通知列表-过滤未读",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "通知",
+      "id": "NOT-04",
+      "name": "全部标记已读",
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "cat": "通知",
+      "id": "NOT-05",
+      "name": "全部已读后计数为0",
+      "status": "PASS",
+      "detail": "ok"
+    }
+  ]
+}
