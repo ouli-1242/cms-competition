@@ -50,6 +50,8 @@ body,
   --el-border-radius-base: 6px;
   --el-border-radius-small: 4px;
   --el-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --el-fill-color-light: #f8fafc;
+  --el-bg-color-page: #f5f7fa;
 }
 
 // Element Plus 按钮优化
@@ -102,23 +104,37 @@ body,
 }
 
 .el-table__body tr {
-  transition: background-color 0.15s ease;
+  transition: background-color 0.2s ease;
 
   &:hover > td.el-table__cell {
-    background-color: #f8fafc;
+    background-color: #f0f7ff;
   }
 }
 
 // Element Plus 标签微调
 .el-tag {
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 500;
+  transition: all 0.15s ease;
 }
 
 // Element Plus 分页微调
 .el-pagination {
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 20px;
+
+  .el-pager li {
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--el-color-primary);
+    }
+
+    &.is-active {
+      font-weight: 600;
+    }
+  }
 }
 
 // Element Plus 输入框微调

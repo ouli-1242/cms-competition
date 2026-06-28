@@ -306,10 +306,16 @@ onMounted(() => {
 // ===== 搜索筛选 =====
 .search-bar {
   background: $bg-card;
-  border-radius: $radius-md;
-  padding: $space-4;
+  border-radius: $radius-lg;
+  padding: $space-5 $space-6;
   margin-bottom: $space-5;
-  box-shadow: $shadow-sm;
+  box-shadow: $shadow-card;
+  border: 1px solid $border-light;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 24px rgba(43, 108, 176, 0.1);
+  }
 }
 
 .search-row {
@@ -354,18 +360,26 @@ onMounted(() => {
 
 .search-btn {
   height: 40px;
-  padding: 0 $space-6;
-  background: $primary;
+  padding: 0 $space-8;
+  background: linear-gradient(135deg, $primary, #3182ce);
   color: #fff;
   border: none;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   font-size: $font-size-base;
+  font-weight: $font-weight-medium;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition: all 0.25s ease;
   flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(43, 108, 176, 0.25);
+  letter-spacing: 1px;
 
   &:hover {
-    background: $primary-hover;
+    background: linear-gradient(135deg, $primary-hover, #2b6cb0);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.35);
+  }
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -450,32 +464,38 @@ onMounted(() => {
 
 .comp-card {
   background: $bg-card;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
   overflow: hidden;
   cursor: pointer;
-  transition: all $transition-base;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: $shadow-sm;
   margin-bottom: $space-4;
   border: 1px solid $border-light;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-md;
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(43, 108, 176, 0.15);
     border-color: $primary-100;
 
     .cover-img {
-      transform: scale(1.05);
+      transform: scale(1.08);
+    }
+    .comp-cover::after {
+      opacity: 0.85;
+    }
+    .comp-title {
+      color: $primary;
     }
   }
 
   &:active {
-    transform: translateY(-2px) scale(0.98);
+    transform: translateY(-2px) scale(0.985);
     box-shadow: $shadow-sm;
   }
 }
 
 .comp-cover {
-  height: 140px;
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,8 +511,9 @@ onMounted(() => {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.25));
+    background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
     z-index: 1;
+    transition: opacity 0.3s ease;
   }
 }
 
@@ -522,7 +543,7 @@ onMounted(() => {
 }
 
 .comp-body {
-  padding: $space-3 $space-4;
+  padding: $space-3 $space-4 $space-4;
 }
 
 .comp-title {
@@ -534,6 +555,7 @@ onMounted(() => {
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.2s ease;
 }
 
 .comp-organizer {

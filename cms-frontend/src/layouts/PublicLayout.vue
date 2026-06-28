@@ -163,11 +163,11 @@ function isActive(t: { path: string }) {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid $border-light;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(237, 242, 247, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .topbar-inner {
@@ -185,17 +185,27 @@ function isActive(t: { path: string }) {
   gap: $space-2;
   cursor: pointer;
   flex-shrink: 0;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: $radius-md;
   background: linear-gradient(135deg, $primary, $primary-hover);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+  box-shadow: 0 2px 10px rgba(43, 108, 176, 0.3);
+  transition: transform 0.2s ease;
+
+  .logo:hover & {
+    transform: rotate(-5deg) scale(1.05);
+  }
 }
 
 .logo-text {
@@ -318,8 +328,8 @@ function isActive(t: { path: string }) {
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: linear-gradient(135deg, $primary, $primary-hover);
   color: #fff;
@@ -329,6 +339,7 @@ function isActive(t: { path: string }) {
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
   overflow: hidden;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.2);
 }
 
 .avatar-img {
@@ -355,52 +366,59 @@ function isActive(t: { path: string }) {
 
 // ===== 左侧导航 =====
 .sidebar {
-  width: 160px;
+  width: 180px;
   min-height: calc(100vh - 64px);
   background: $bg-card;
   border-right: 1px solid $border-light;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: $space-4 0;
-  gap: $space-2;
+  padding: $space-5 0;
+  gap: $space-1;
   flex-shrink: 0;
-  transition: width 0.25s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
   overflow: hidden;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
 }
 
 .sidebar.collapsed {
-  width: 56px;
+  width: 60px;
+
+  .side-item {
+    justify-content: center;
+    padding: 10px;
+  }
 }
 
 .side-item {
-  width: calc(100% - 16px);
+  width: calc(100% - 12px);
+  margin: 0 $space-2;
   display: flex;
   align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-3;
+  gap: $space-3;
+  padding: 10px $space-4;
   border-radius: $radius-md;
   color: $text-regular;
   text-decoration: none;
   font-size: $font-size-sm;
-  transition: all $transition-base;
+  transition: all 0.2s ease;
   white-space: nowrap;
   overflow: hidden;
   position: relative;
 
   .side-icon {
-    transition: transform $transition-base, color $transition-base;
+    transition: transform 0.2s ease, color 0.2s ease;
   }
 
   &:hover {
     background: linear-gradient(135deg, $primary-50, #e8f0fe);
     color: $primary;
+    transform: translateX(2px);
 
     .side-icon {
-      transform: translateX(3px);
+      transform: scale(1.1);
     }
   }
 
@@ -408,7 +426,6 @@ function isActive(t: { path: string }) {
     background: linear-gradient(135deg, $primary-50, #e0efff);
     color: $primary;
     font-weight: $font-weight-semibold;
-    box-shadow: 0 1px 4px rgba(43, 108, 176, 0.12);
 
     .side-icon {
       transform: scale(1.1);
@@ -421,9 +438,9 @@ function isActive(t: { path: string }) {
       top: 50%;
       transform: translateY(-50%);
       width: 3px;
-      height: 60%;
+      height: 65%;
       border-radius: 0 2px 2px 0;
-      background: $primary;
+      background: linear-gradient(180deg, $primary, #3182ce);
     }
   }
 }
@@ -442,24 +459,27 @@ function isActive(t: { path: string }) {
 
 .collapse-btn {
   margin-top: auto;
-  width: 32px;
-  height: 32px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 36px;
+  height: 36px;
   border: 1px solid $border-base;
   background: $bg-card;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   cursor: pointer;
   color: $text-secondary;
-  font-size: 16px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all $transition-fast;
+  transition: all 0.2s ease;
   flex-shrink: 0;
 
   &:hover {
     background: $primary-50;
     color: $primary;
-    border-color: $primary;
+    border-color: $primary-100;
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.1);
   }
 }
 

@@ -347,7 +347,7 @@ const statusType = competitionStatusType
 // ====== Hero ======
 .hero {
   position: relative;
-  height: 300px;
+  height: 320px;
   border-radius: $radius-lg;
   background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 40%, #3182ce 70%, #4299e1 100%);
   background-size: cover;
@@ -358,7 +358,15 @@ const statusType = competitionStatusType
   justify-content: center;
   color: #fff;
   margin-bottom: $space-6;
-  box-shadow: 0 8px 32px rgba(43, 108, 176, 0.2);
+  box-shadow: 0 8px 32px rgba(43, 108, 176, 0.25);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(26, 54, 93, 0.7) 0%, rgba(43, 108, 176, 0.4) 50%, rgba(66, 153, 225, 0.3) 100%);
+    z-index: 1;
+  }
 }
 
 .hero-bg {
@@ -367,36 +375,47 @@ const statusType = competitionStatusType
   pointer-events: none;
 }
 
+@keyframes floatCircle {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10px, -10px) scale(1.05); }
+}
+
 .hero-circle {
   position: absolute;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
+  animation: floatCircle 8s ease-in-out infinite;
 }
 .hero-circle-1 {
-  width: 300px;
-  height: 300px;
-  top: -100px;
+  width: 320px;
+  height: 320px;
+  top: -120px;
   left: -80px;
+  animation-duration: 10s;
 }
 .hero-circle-2 {
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   bottom: -60px;
   right: -40px;
   background: rgba(255, 255, 255, 0.06);
+  animation-delay: 2s;
+  animation-duration: 9s;
 }
 .hero-circle-3 {
-  width: 150px;
-  height: 150px;
+  width: 160px;
+  height: 160px;
   top: 30%;
   right: 20%;
   background: rgba(255, 255, 255, 0.05);
+  animation-delay: 4s;
+  animation-duration: 7s;
 }
 
 .hero-content {
   position: relative;
   text-align: center;
-  z-index: 1;
+  z-index: 2;
 }
 
 .hero-title {
@@ -482,7 +501,7 @@ const statusType = competitionStatusType
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
   backdrop-filter: blur(4px);
   transition: all $transition-fast;
 
@@ -506,11 +525,16 @@ const statusType = competitionStatusType
 // ====== 搜索筛选 ======
 .search-bar {
   background: $bg-card;
-  border-radius: $radius-md;
-  padding: $space-4 $space-5;
+  border-radius: $radius-lg;
+  padding: $space-5 $space-6;
   margin-bottom: $space-6;
-  box-shadow: $shadow-base;
+  box-shadow: $shadow-card;
   border: 1px solid $border-light;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 24px rgba(43, 108, 176, 0.1);
+  }
 }
 
 .search-inner {
@@ -545,27 +569,28 @@ const statusType = competitionStatusType
 }
 
 .search-btn {
-  height: 36px;
-  padding: 0 $space-6;
+  height: 40px;
+  padding: 0 $space-8;
   background: linear-gradient(135deg, $primary, #3182ce);
   color: #fff;
   border: none;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition: all 0.25s ease;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.2);
+  box-shadow: 0 3px 10px rgba(43, 108, 176, 0.25);
+  letter-spacing: 1px;
 
   &:hover {
     background: linear-gradient(135deg, $primary-hover, #2b6cb0);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.35);
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: translateY(0) scale(0.98);
   }
 }
 
@@ -578,23 +603,26 @@ const statusType = competitionStatusType
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-4;
+  margin-bottom: $space-5;
+  padding-bottom: $space-3;
+  border-bottom: 1px solid $border-light;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: $space-2;
+  gap: $space-3;
   margin: 0;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
   color: $text-primary;
+  letter-spacing: 0.5px;
 }
 
 .bar {
   display: inline-block;
   width: 4px;
-  height: 18px;
+  height: 20px;
   border-radius: 2px;
   background: $primary;
 }
@@ -609,9 +637,13 @@ const statusType = competitionStatusType
   font-size: $font-size-sm;
   color: $primary;
   cursor: pointer;
-  transition: opacity $transition-fast;
+  padding: $space-1 $space-3;
+  border-radius: $radius-full;
+  transition: all 0.2s ease;
+
   &:hover {
-    opacity: 0.7;
+    background: $primary-50;
+    opacity: 0.8;
   }
 }
 
@@ -622,32 +654,38 @@ const statusType = competitionStatusType
 
 .comp-card {
   background: $bg-card;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
   overflow: hidden;
   cursor: pointer;
-  transition: all $transition-base;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: $shadow-sm;
   margin-bottom: $space-4;
   border: 1px solid $border-light;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-md;
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(43, 108, 176, 0.15);
     border-color: $primary-100;
 
     .comp-cover img {
-      transform: scale(1.05);
+      transform: scale(1.08);
+    }
+    .comp-cover::after {
+      opacity: 0.85;
+    }
+    .comp-title {
+      color: $primary;
     }
   }
 
   &:active {
-    transform: translateY(-2px) scale(0.98);
+    transform: translateY(-2px) scale(0.985);
     box-shadow: $shadow-sm;
   }
 }
 
 .comp-cover {
-  height: 130px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -663,8 +701,9 @@ const statusType = competitionStatusType
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.25));
+    background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
     z-index: 1;
+    transition: opacity 0.3s ease;
   }
 }
 
@@ -683,7 +722,7 @@ const statusType = competitionStatusType
 }
 
 .comp-body {
-  padding: $space-3 $space-4;
+  padding: $space-3 $space-4 $space-4;
 }
 
 .comp-title {
@@ -695,6 +734,7 @@ const statusType = competitionStatusType
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.2s ease;
 }
 
 .comp-tags {

@@ -77,6 +77,9 @@ function logout() {
   box-shadow: 1px 0 8px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
 .logo {
@@ -141,12 +144,15 @@ function logout() {
 
 .topbar {
   height: 64px;
-  background: $bg-card;
-  border-bottom: 1px solid $border-light;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(237, 242, 247, 0.8);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 $space-6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .user-info {

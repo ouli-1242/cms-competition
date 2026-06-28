@@ -200,16 +200,22 @@ function logout() {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
+// ===== 顶部栏 =====
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   height: 64px;
-  background: $bg-card;
-  border-bottom: 1px solid $border-light;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(237, 242, 247, 0.8);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 $space-6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
   box-shadow: $shadow-sm;
 }
 

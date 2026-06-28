@@ -698,12 +698,18 @@ onMounted(() => {
 }
 
 // ===== 封面 =====
+@keyframes coverFloat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
 .cover {
   position: relative;
-  height: 240px;
-  border-radius: $radius-md;
+  height: 260px;
+  border-radius: $radius-lg;
   overflow: hidden;
   margin-bottom: $space-4;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .cover-img {
@@ -711,12 +717,13 @@ onMounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+  animation: coverFloat 8s ease-in-out infinite;
 }
 
 .cover-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #b91c1c 100%);
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 40%, #4299e1 80%, #48bb78 100%);
 }
 
 .cover-circle {
@@ -783,10 +790,11 @@ onMounted(() => {
 
 .section {
   background: $bg-card;
-  border-radius: $radius-md;
-  padding: $space-5;
-  margin-bottom: $space-4;
+  border-radius: $radius-lg;
+  padding: $space-5 $space-6;
+  margin-bottom: $space-5;
   box-shadow: $shadow-sm;
+  border: 1px solid $border-light;
   animation: sectionFadeIn 0.5s ease both;
   transition: box-shadow $transition-base, transform $transition-base;
 
