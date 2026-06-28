@@ -457,25 +457,33 @@ onMounted(() => {
   display: flex;
   gap: $space-3;
   margin-bottom: $space-4;
+  padding: 4px;
+  background: $bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
 }
 
 .tab-item {
+  flex: 1;
+  text-align: center;
   padding: $space-2 $space-4;
   font-size: $font-size-sm;
   color: $text-secondary;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all $transition-fast;
+  border-radius: $radius-base;
+  transition: all $transition-base;
   user-select: none;
 
   &:hover {
     color: $primary;
+    background: $primary-50;
   }
 
   &.active {
-    color: $primary;
-    border-bottom-color: $primary;
+    background: $primary;
+    color: #fff;
     font-weight: $font-weight-medium;
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3);
   }
 }
 

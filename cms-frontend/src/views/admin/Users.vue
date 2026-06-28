@@ -540,8 +540,31 @@ onMounted(() => {
   font-weight: $font-weight-medium;
   border-radius: $radius-base;
   cursor: pointer;
-  transition: all $transition-fast;
-  &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3); }
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(43, 108, 176, 0.35);
+
+    &::after {
+      transform: translateX(100%);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
 }
 
 // ===== 创建表单弹窗 =====

@@ -776,12 +776,28 @@ onMounted(() => {
 }
 
 // ===== 通用 Section =====
+@keyframes sectionFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .section {
   background: $bg-card;
   border-radius: $radius-md;
   padding: $space-5;
   margin-bottom: $space-4;
   box-shadow: $shadow-sm;
+  animation: sectionFadeIn 0.5s ease both;
+  transition: box-shadow $transition-base, transform $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  &:nth-child(3) { animation-delay: 0.05s; }
+  &:nth-child(4) { animation-delay: 0.1s; }
+  &:nth-child(5) { animation-delay: 0.15s; }
+  &:nth-child(6) { animation-delay: 0.2s; }
 }
 
 .section-title {
@@ -906,12 +922,20 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 101;
-  background: $bg-card;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid $border-light;
   padding: $space-3 $space-6;
   display: flex;
   justify-content: center;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 
 .action-btn {
@@ -929,17 +953,36 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: $space-2;
-  transition: all $transition-fast;
+  transition: all $transition-base;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, $primary, $primary-hover);
   color: #fff;
   box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(43, 108, 176, 0.45);
+
+    &::after {
+      transform: translateX(100%);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
   }
 }
 

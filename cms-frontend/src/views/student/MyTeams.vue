@@ -253,7 +253,18 @@ onMounted(() => {
   border-radius: $radius-base;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(43, 108, 176, 0.25);
-  transition: all $transition-fast;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
 
   .icon {
     font-size: 18px;
@@ -261,8 +272,16 @@ onMounted(() => {
   }
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(43, 108, 176, 0.35);
+
+    &::after {
+      transform: translateX(100%);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
   }
 }
 
@@ -312,10 +331,16 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   transition: all $transition-base;
+  border: 1px solid $border-light;
 
   &:hover {
     box-shadow: $shadow-md;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    border-color: $primary-100;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.99);
   }
 }
 

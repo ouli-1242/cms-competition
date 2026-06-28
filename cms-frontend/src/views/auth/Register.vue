@@ -656,7 +656,7 @@ function inputStyle(field: keyof typeof form) {
   line-height: 16px;
 }
 
-// ===== 按钮 =====
+// ===== 注册按钮 =====
 .btn-primary {
   width: 100%;
   height: 46px;
@@ -669,12 +669,27 @@ function inputStyle(field: keyof typeof form) {
   font-weight: $font-weight-medium;
   letter-spacing: 4px;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition: all $transition-base;
   box-shadow: 0 4px 12px rgba(43, 108, 176, 0.25);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(43, 108, 176, 0.4);
+
+    &::after {
+      transform: translateX(100%);
+    }
   }
   &:active:not(:disabled) {
     transform: scale(0.98);

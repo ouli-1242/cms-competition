@@ -278,10 +278,29 @@ function isActive(t: { path: string }) {
   border-radius: $radius-base;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(43, 108, 176, 0.2);
-  transition: all $transition-fast;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(43, 108, 176, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(43, 108, 176, 0.35);
+
+    &::after {
+      transform: translateX(100%);
+    }
+  }
+  &:active {
+    transform: translateY(0) scale(0.97);
   }
 }
 
@@ -367,21 +386,33 @@ function isActive(t: { path: string }) {
   color: $text-regular;
   text-decoration: none;
   font-size: $font-size-sm;
-  transition: all $transition-fast;
+  transition: all $transition-base;
   white-space: nowrap;
   overflow: hidden;
   position: relative;
 
+  .side-icon {
+    transition: transform $transition-base, color $transition-base;
+  }
+
   &:hover {
     background: linear-gradient(135deg, $primary-50, #e8f0fe);
     color: $primary;
+
+    .side-icon {
+      transform: translateX(3px);
+    }
   }
 
   &.active {
     background: linear-gradient(135deg, $primary-50, #e0efff);
     color: $primary;
     font-weight: $font-weight-semibold;
-    box-shadow: 0 1px 3px rgba(43, 108, 176, 0.1);
+    box-shadow: 0 1px 4px rgba(43, 108, 176, 0.12);
+
+    .side-icon {
+      transform: scale(1.1);
+    }
 
     &::before {
       content: '';

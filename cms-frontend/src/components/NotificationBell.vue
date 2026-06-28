@@ -89,7 +89,7 @@ onUnmounted(() => {
     popper-class="notification-popover"
   >
     <template #reference>
-      <div class="bell-wrap" @click="showPopover = !showPopover; onOpen()">
+      <div class="bell-wrap" :class="{ 'has-unread': unreadCount > 0 }" @click="showPopover = !showPopover; onOpen()">
         <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
           <el-icon :size="20"><Bell /></el-icon>
         </el-badge>
@@ -138,12 +138,32 @@ onUnmounted(() => {
   cursor: pointer;
   padding: $space-2;
   border-radius: $radius-base;
-  transition: background $transition-fast;
+  transition: all $transition-base;
   color: $text-regular;
+
   &:hover {
     background: $primary-50;
     color: $primary;
+    transform: scale(1.08);
   }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(12deg); }
+  30% { transform: rotate(-10deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+  90% { transform: rotate(-1deg); }
+}
+
+.bell-wrap.has-unread:hover .el-icon {
+  animation: bellRing 0.6s ease-in-out;
 }
 
 .notif-panel {
