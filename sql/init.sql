@@ -13,7 +13,7 @@ CREATE TABLE `user` (
   `nickname` VARCHAR(50),
   `real_name` VARCHAR(50),
   `role` VARCHAR(20) NOT NULL DEFAULT 'STUDENT' COMMENT 'STUDENT/TEACHER/ADMIN',
-  `school` VARCHAR(100),
+  `college` VARCHAR(100),
   `phone` VARCHAR(20),
   `email` VARCHAR(100),
   `avatar` VARCHAR(255),
@@ -58,6 +58,7 @@ CREATE TABLE `team` (
   `max_size` INT DEFAULT 5,
   `slogan` VARCHAR(255),
   `status` TINYINT DEFAULT 0 COMMENT '0组建中 1已提交 2已锁定',
+  `dissolved_at` DATETIME COMMENT '解散时间，12小时内队长可恢复',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` TINYINT DEFAULT 0,
@@ -168,11 +169,29 @@ CREATE TABLE `team_advisor` (
   INDEX idx_teacher (teacher_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 12. 个人资料修改申请
+CREATE TABLE IF NOT EXISTS `profile_change_request` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL COMMENT '申请用户ID',
+  `field_name` VARCHAR(50) NOT NULL COMMENT '字段名: username / email',
+  `old_value` VARCHAR(255) DEFAULT NULL COMMENT '旧值',
+  `new_value` VARCHAR(255) NOT NULL COMMENT '新值',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '0待审核 1已通过 2已拒绝',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `review_time` DATETIME DEFAULT NULL COMMENT '审核时间',
+  `reviewer_id` BIGINT DEFAULT NULL COMMENT '审核人ID',
+  `review_remark` VARCHAR(500) DEFAULT NULL COMMENT '审核备注',
+  `is_deleted` TINYINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_status` (`user_id`, `status`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='个人资料修改申请';
+
 -- =====================================================
 -- 测试数据（密码统一为 123456）
 -- BCrypt: $2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu
 -- =====================================================
-INSERT INTO `user`(username,password,nickname,real_name,role,school,phone,avatar) VALUES
+INSERT INTO `user`(username,password,nickname,real_name,role,college,phone,avatar) VALUES
 ('admin',   '$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '超级管理员', '管理员',  'ADMIN',   'XX大学', '13800000000', '/images/avatars/avatar1.png'),
 ('teacher1','$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '张老师',     '张老师',  'TEACHER', 'XX大学', '13800000001', '/images/avatars/avatar2.png'),
 ('teacher2','$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '李老师',     '李老师',  'TEACHER', 'XX大学', '13800000002', '/images/avatars/avatar3.png'),
@@ -184,7 +203,13 @@ INSERT INTO `competition`(title,description,category,type,max_team_size,min_team
 ('全国大学生数学建模竞赛', '全国性数学建模赛事，欢迎组队参加', '学科竞赛', 2, 3, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover1.png', 1, 2, 1),
 ('互联网+创新创业大赛',     '创新创业大赛，个人赛',          '创新创业', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover2.png', 1, 3, 1),
 ('ACM 程序设计竞赛',        '编程类团队赛，每队 3 人',      '学科竞赛', 2, 3, 2, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover3.png', 1, 2, 1),
-('英语演讲比赛',            '个人赛，提升英语表达',          '文体艺术', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover4.png', 1, 2, 0);
+('英语演讲比赛',            '个人赛，提升英语表达',          '文体艺术', 1, 1, 1, '2026-06-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover4.png', 1, 2, 0),
+('蓝桥杯全国软件和信息技术专业人才大赛', '面向全国高校学生的软件与信息技术类竞赛，涵盖程序设计、Web开发、数据库等多个赛道', '学科竞赛', 1, 1, 1, '2026-03-01 00:00:00', '2026-05-15 23:59:59', '/images/covers/cover5.png', 1, 2, 1),
+('全国大学生数学竞赛', '由中国数学会主办的全国性大学生数学赛事，考察高等数学、线性代数、概率论等核心数学知识', '学科竞赛', 1, 1, 1, '2026-04-01 00:00:00', '2026-05-31 23:59:59', '/images/covers/cover6.png', 1, 3, 1),
+('中国大学生程序设计竞赛', 'CCPC 全国性程序设计赛事，以团队形式参赛，每队3人，在限定时间内解决算法与数据结构问题', '学科竞赛', 2, 3, 3, '2026-07-01 00:00:00', '2026-09-30 23:59:59', '/images/covers/cover7.png', 1, 2, 1),
+('全国大学生电子设计竞赛', '教育部倡导的全国性大学生电子类竞赛，以团队形式完成电子系统设计与制作', '学科竞赛', 2, 3, 2, '2026-05-01 00:00:00', '2026-07-15 23:59:59', '/images/covers/cover8.png', 1, 2, 1),
+('嵌入式系统设计竞赛', '面向全国高校学生的嵌入式系统设计与开发竞赛，以团队形式完成嵌入式软硬件系统的设计、实现与优化', '学科竞赛', 2, 4, 2, '2026-08-01 00:00:00', '2026-10-31 23:59:59', '/images/covers/cover9.png', 1, 3, 1),
+('RoboMaster机甲大师赛', '由大疆发起的机器人竞技赛事，参赛队伍设计并制作多种功能的机器人，在赛场中进行对抗比赛', '科技创新', 2, 5, 3, '2026-09-01 00:00:00', '2026-12-31 23:59:59', '/images/covers/cover10.png', 1, 2, 1);
 
 INSERT INTO `banner`(title,image_url,link_url,sort,status) VALUES
 ('数学建模竞赛火热报名中', '/images/banners/banner1.png', '/competitions/1', 1, 1),
