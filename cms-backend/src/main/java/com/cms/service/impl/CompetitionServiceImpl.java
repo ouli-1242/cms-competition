@@ -64,6 +64,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
         this.updateById(c);
     }
 
+
     @Override
     public void changeStatus(Long id, Integer status) {
         Competition c = this.getById(id);
@@ -71,6 +72,7 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
         c.setStatus(status);
         this.updateById(c);
     }
+
 
     @Override
     public void deleteCompetition(Long id) {
@@ -86,8 +88,10 @@ public class CompetitionServiceImpl extends ServiceImpl<CompetitionMapper, Compe
         this.removeById(id);
     }
 
+
     @Override
     public List<Long> listIdsByTeacher(Long teacherId) {
         return baseMapper.selectIdsByTeacher(teacherId);
     }
+
 }

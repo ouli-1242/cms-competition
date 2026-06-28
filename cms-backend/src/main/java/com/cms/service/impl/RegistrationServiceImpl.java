@@ -105,4 +105,5 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
         wrapper.orderByDesc(Registration::getRegisterTime);
         return this.list(wrapper);
     }
+
 }

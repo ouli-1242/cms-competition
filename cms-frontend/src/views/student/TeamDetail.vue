@@ -12,6 +12,7 @@ import { useUserStore } from '@/stores/user'
 import { getTeamDetail, searchTeachers, inviteTeacher, cancelAdvisorInvite } from '@/api/team'
 import { getCompetitionDetail } from '@/api/public'
 
+
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
@@ -46,7 +47,7 @@ async function loadTeam() {
         try {
           const comp: any = await getCompetitionDetail(t.competitionId)
           compTitle = comp?.title || ''
-        } catch {}
+        } catch { console.error('[TeamDetail] 操作失败') }
       }
       const members = (res.members || []).map((m: any) => ({
         realName: m.realName || m.username || '成员',

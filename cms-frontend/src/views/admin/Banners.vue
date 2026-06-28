@@ -139,6 +139,7 @@ function openDelete(row: any) {
   deleteVisible.value = true
 }
 
+
 async function confirmDelete() {
   if (!deleteTarget.value) return
   await deleteBanner(deleteTarget.value.id)

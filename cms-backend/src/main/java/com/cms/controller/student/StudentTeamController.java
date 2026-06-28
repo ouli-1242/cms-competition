@@ -42,6 +42,7 @@ public class StudentTeamController {
         return Result.success();
     }
 
+
     /** 我的团队（列表） */
     @GetMapping("/my")
     public Result<List<Map<String, Object>>> myTeam() {
@@ -54,12 +55,14 @@ public class StudentTeamController {
         return Result.success(teamService.getTeamDetail(id));
     }
 
+
     /** 退出团队 */
     @PostMapping("/{id}/quit")
     public Result quit(@PathVariable Long id) {
         teamService.quitTeam(id, SecurityUtil.currentUserId());
         return Result.success();
     }
+
 
     /** 解散团队（仅队长可操作） */
     @PostMapping("/{id}/dissolve")
@@ -68,12 +71,14 @@ public class StudentTeamController {
         return Result.success();
     }
 
+
     /** 恢复已解散的团队（12小时内，仅队长） */
     @PostMapping("/{id}/recover")
     public Result recover(@PathVariable Long id) {
         teamService.recoverTeam(id, SecurityUtil.currentUserId());
         return Result.success();
     }
+
 
     /** 审核成员 */
     @PutMapping("/review")
@@ -89,12 +94,14 @@ public class StudentTeamController {
         return Result.success();
     }
 
+
     /** 转让队长 */
     @PutMapping("/transfer")
     public Result transfer(@RequestParam Long teamId, @RequestParam Long newCaptainId) {
         teamService.transferCaptain(teamId, newCaptainId, SecurityUtil.currentUserId());
         return Result.success();
     }
+
 
     /** 提交团队报名 */
     @PostMapping("/submit")
@@ -126,6 +133,7 @@ public class StudentTeamController {
         return Result.success(result);
     }
 
+
     /** 搜索教师（模糊匹配姓名/学院） */
     @GetMapping("/search-teachers")
     public Result<List<Map<String, Object>>> searchTeachers(@RequestParam(required = false) String keyword) {
@@ -146,6 +154,7 @@ public class StudentTeamController {
         }).collect(Collectors.toList());
         return Result.success(result);
     }
+
 
     /** 邀请指导老师 */
     @PostMapping("/{teamId}/invite-teacher")

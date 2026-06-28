@@ -54,7 +54,8 @@ async function loadData() {
   }
 }
 
-// ====== 判断状态 ======
+
+// ====== 报名按钮状态 ======
 function isRegistrationPeriod(c: any): boolean {
   if (!c) return false
   const now = Date.now()

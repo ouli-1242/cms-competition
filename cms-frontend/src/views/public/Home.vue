@@ -11,6 +11,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCompetitions, getActiveBanners, getActiveHot } from '@/api/public'
 import type { Competition } from '@/api/public'
+import { competitionStatusText, competitionStatusType } from '@/utils/status'
+import { coverStyle } from '@/utils/cover'
 
 const router = useRouter()
 
@@ -22,12 +24,6 @@ let heroTimer: ReturnType<typeof setInterval> | null = null
 const hotList = ref<Competition[]>([])
 const latestList = ref<Competition[]>([])
 const loading = ref(false)
-
-/** 从 banner linkUrl 中提取竞赛 ID，如 /competitions/123 → 123 */
-function extractIdFromUrl(url: string): number {
-  const match = url.match(/\/competitions\/(\d+)/)
-  return match ? Number(match[1]) : 0
-}
 
 // ====== 搜索筛选 ======
 const filters = ref({
@@ -161,39 +157,9 @@ onMounted(async () => {
   displayLatest.value = latestList.value
 })
 
-// 状态标签
-function computeStatus(c: Competition): number {
-  const now = Date.now()
-  const start = c.registerStart ? new Date(c.registerStart).getTime() : 0
-  const end = c.registerEnd ? new Date(c.registerEnd).getTime() : 0
-  if (now < start) return 0   // 即将开始
-  if (now > end) return 2     // 已截止
-  return 1                     // 报名中
-}
-function statusText(c: Competition) {
-  const s = computeStatus(c)
-  return s === 1 ? '报名中' : s === 2 ? '已截止' : '即将开始'
-}
-function statusType(c: Competition) {
-  const s = computeStatus(c)
-  return s === 1 ? 'success' : s === 2 ? 'info' : 'warning'
-}
-
-// 卡片封面渐变色（按标题首个字 hash 选色）
-function coverStyle(title: string) {
-  const colors = [
-    ['#4a5568', '#2d3748'],
-    ['#2b6cb0', '#2c5282'],
-    ['#d69e2e', '#b7791f'],
-    ['#9f7aea', '#6b46c1'],
-    ['#e53e3e', '#c53030'],
-    ['#48bb78', '#2f855a']
-  ]
-  const idx = (title?.charCodeAt(0) || 0) % colors.length
-  return {
-    background: `linear-gradient(135deg, ${colors[idx][0]}, ${colors[idx][1]})`
-  }
-}
+// 状态标签 → 使用 src/utils/status.ts 统一函数
+const statusText = competitionStatusText
+const statusType = competitionStatusType
 </script>
 
 <template>

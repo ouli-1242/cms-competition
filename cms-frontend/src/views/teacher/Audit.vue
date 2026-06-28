@@ -123,6 +123,7 @@ function handleSizeChange(size: number) {
   loadData()
 }
 
+
 function openAudit(row: any) {
   auditTarget.value = row
   auditForm.pass = true
@@ -165,6 +166,7 @@ async function handleAuditSubmit() {
   }
 }
 
+
 // ====== 批量审核 ======
 const selectedRows = ref<any[]>([])
 
@@ -197,21 +199,16 @@ async function handleBatchSubmit() {
   const pendingRows = selectedRows.value.filter((r: any) => r.status === 0)
   if (pendingRows.length === 0) return
   batchSubmitting.value = true
-  let success = 0
-  let fail = 0
   try {
-    for (const row of pendingRows) {
-      try {
-        if (activeTab.value === 'individual') {
-          await teacherAuditRegistration(row.id, batchForm.pass, batchForm.remark)
-        } else {
-          await teacherAuditTeamRegistration(row.id, batchForm.pass, batchForm.remark)
-        }
-        success++
-      } catch {
-        fail++
-      }
-    }
+    const results = await Promise.allSettled(
+      pendingRows.map((row) =>
+        activeTab.value === 'individual'
+          ? teacherAuditRegistration(row.id, batchForm.pass, batchForm.remark)
+          : teacherAuditTeamRegistration(row.id, batchForm.pass, batchForm.remark)
+      )
+    )
+    const success = results.filter((r) => r.status === 'fulfilled').length
+    const fail = results.length - success
     ElMessage.success(`批量审核完成：${success} 条成功${fail > 0 ? '，' + fail + ' 条失败' : ''}`)
     batchVisible.value = false
     selectedRows.value = []
@@ -257,17 +254,7 @@ function handleExport() {
 
 // ====== 工具函数 ======
 
-function statusType(s: number) {
-  return s === 0 ? 'warning' : s === 1 ? 'success' : 'danger'
-}
-
-function statusText(s: number) {
-  return s === 0 ? '待审核' : s === 1 ? '已通过' : '已拒绝'
-}
-
-function getCompTitle(id: number) {
-  return compTitleMap.value[id] || `竞赛#${id}`
-}
+const getCompTitle = (id: number) => compTitleMap.value[id] || `竞赛#${id}`
 
 // ====== 监听 & 初始化 ======
 

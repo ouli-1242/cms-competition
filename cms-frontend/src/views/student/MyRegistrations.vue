@@ -12,6 +12,7 @@ import { ElMessage } from 'element-plus'
 import { getMyRegistrations, cancelRegistration, getMyTeamRegistrations } from '@/api/registration'
 import { getCompetitionDetail } from '@/api/public'
 
+
 const router = useRouter()
 
 // ====== Tab 切换 ======

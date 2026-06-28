@@ -6,6 +6,7 @@
  * - 审核弹窗
  */
 import { ref, reactive, onMounted } from 'vue'
+import { statusText, statusType } from '@/utils/status'
 import { ElMessage } from 'element-plus'
 import { getProfileChanges, reviewProfileChange } from '@/api/admin'
 
@@ -26,14 +27,6 @@ const submitting = ref(false)
 const fieldLabel: Record<string, string> = {
   username: '学号',
   email: '邮箱'
-}
-
-function statusText(s: number) {
-  return s === 0 ? '待审核' : s === 1 ? '已通过' : '已拒绝'
-}
-
-function statusType(s: number) {
-  return s === 0 ? 'warning' : s === 1 ? 'success' : 'danger'
 }
 
 async function loadData() {

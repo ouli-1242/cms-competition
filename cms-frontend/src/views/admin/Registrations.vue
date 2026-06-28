@@ -7,6 +7,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getRegistrations, auditRegistration, getTeamRegistrations, auditTeamRegistration, getCompetitions } from '@/api/admin'
+import { statusText, statusType } from '@/utils/status'
 
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -74,6 +75,7 @@ async function handleIndAudit() {
   } finally { indSubmitting.value = false }
 }
 
+
 // ====== 团队报名 ======
 async function loadTeamData() {
   teamLoading.value = true
@@ -96,6 +98,7 @@ function openTeamDialog(row: any) {
   teamDialogVisible.value = true
 }
 
+
 async function handleTeamAudit() {
   if (!teamAuditForm.remark.trim()) { teamAuditError.value = '请填写审核意见'; return }
   if (teamAuditForm.remark.length > 200) { teamAuditError.value = '审核意见不能超过 200 字'; return }
@@ -111,8 +114,6 @@ async function handleTeamAudit() {
 }
 
 // ====== 通用 ======
-function statusType(s: number) { return s === 0 ? 'warning' : s === 1 ? 'success' : 'danger' }
-function statusText(s: number) { return s === 0 ? '待审核' : s === 1 ? '已通过' : '已拒绝' }
 
 function handleSearch() {
   if (activeTab.value === 'individual') loadData()

@@ -12,6 +12,9 @@ import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getCompetitions } from '@/api/public'
 import type { Competition, PageResult } from '@/api/public'
+import { competitionStatusText, competitionStatusType } from '@/utils/status'
+import { coverStyle } from '@/utils/cover'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -32,16 +35,22 @@ const currentPage = ref(1)
 const pageSize = ref(12)
 
 // ====== 筛选选项 ======
-const categoryOptions = [
-  { label: '全部', value: '' },
-  { label: '数学建模', value: '数学建模' },
-  { label: '程序设计', value: '程序设计' },
-  { label: '电子设计', value: '电子设计' },
-  { label: '挑战杯', value: '挑战杯' },
-  { label: '互联网+', value: '互联网+' },
-  { label: '机械创新', value: '机械创新' },
-  { label: '英语竞赛', value: '英语竞赛' }
-]
+const categoryOptions = ref<{ label: string; value: string }[]>([{ label: '全部', value: '' }])
+
+// 动态加载类别列表
+async function loadCategories() {
+  try {
+    const res: any = await getCompetitions({ pageNum: 1, pageSize: 100 })
+    const categories = new Set<string>()
+    ;(res?.records || []).forEach((c: Competition) => {
+      if (c.category) categories.add(c.category)
+    })
+    categoryOptions.value = [
+      { label: '全部', value: '' },
+      ...Array.from(categories).map(c => ({ label: c, value: c }))
+    ]
+  } catch { /* 忽略 */ }
+}
 const statusOptions = [
   { label: '全部', value: '' },
   { label: '报名中', value: 1 },
@@ -78,14 +87,9 @@ async function loadData() {
   }
 }
 
-function computeStatus(c: Competition): number {
-  const now = Date.now()
-  const start = c.registerStart ? new Date(c.registerStart).getTime() : 0
-  const end = c.registerEnd ? new Date(c.registerEnd).getTime() : 0
-  if (now < start) return 0   // 即将开始
-  if (now > end) return 2     // 已截止
-  return 1                     // 报名中
-}
+// 状态标签 → 使用 src/utils/status.ts 统一函数
+const statusText = competitionStatusText
+const statusType = competitionStatusType
 
 function onSearch() {
   currentPage.value = 1
@@ -107,32 +111,6 @@ function onPageChange(p: number) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 状态文案/颜色
-function statusText(c: Competition) {
-  const s = computeStatus(c)
-  return s === 1 ? '报名中' : s === 2 ? '已截止' : '即将开始'
-}
-function statusType(c: Competition) {
-  const s = computeStatus(c)
-  return s === 1 ? 'success' : s === 2 ? 'info' : 'warning'
-}
-
-// 卡片封面渐变
-function coverStyle(title: string) {
-  const colors = [
-    ['#4a5568', '#2d3748'],
-    ['#2b6cb0', '#2c5282'],
-    ['#d69e2e', '#b7791f'],
-    ['#9f7aea', '#6b46c1'],
-    ['#e53e3e', '#c53030'],
-    ['#48bb78', '#2f855a']
-  ]
-  const idx = (title?.charCodeAt(0) || 0) % colors.length
-  return {
-    background: `linear-gradient(135deg, ${colors[idx][0]}, ${colors[idx][1]})`
-  }
-}
-
 // 监听 query 变化（从首页跳转过来）
 watch(
   () => route.query,
@@ -147,6 +125,7 @@ watch(
 )
 
 onMounted(() => {
+  loadCategories()
   loadData()
 })
 </script>

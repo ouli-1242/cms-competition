@@ -36,21 +36,21 @@ async function loadStats() {
   try {
     const res: any = await getMyRegistrations({ pageNum: 1, pageSize: 1 })
     if (res) indTotal = res.total || 0
-  } catch {}
+  } catch { console.error('[Profile] 操作失败') }
   try {
     const res: any = await getMyRegistrations({ pageNum: 1, pageSize: 1, status: 0 })
     if (res) indPending = res.total || 0
-  } catch {}
+  } catch { console.error('[Profile] 操作失败') }
   // 团队报名
   let teamTotal = 0, teamPending = 0
   try {
     const res: any = await getMyTeamRegistrations({ pageNum: 1, pageSize: 1 })
     if (res) teamTotal = res.total || 0
-  } catch {}
+  } catch { console.error('[Profile] 操作失败') }
   try {
     const res: any = await getMyTeamRegistrations({ pageNum: 1, pageSize: 1, status: 0 })
     if (res) teamPending = res.total || 0
-  } catch {}
+  } catch { console.error('[Profile] 操作失败') }
   stats.value.registrations = indTotal + teamTotal
   stats.value.pending = indPending + teamPending
 }

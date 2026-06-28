@@ -50,6 +50,7 @@ public class StudentRegistrationController {
         return Result.success();
     }
 
+
     /** 我的报名记录 */
     @GetMapping("/page")
     public Result<Page<Registration>> myPage(
@@ -142,6 +143,7 @@ public class StudentRegistrationController {
         return Result.success(response);
     }
 
+
     /** 报名详情（含竞赛名称） */
     @GetMapping("/{id}")
     public Result<Map<String, Object>> getDetail(@PathVariable Long id) {
@@ -167,6 +169,7 @@ public class StudentRegistrationController {
         return Result.success(map);
     }
 
+
     /** 编辑报名（仅待审核状态可改） */
     @PutMapping("/{id}")
     public Result update(@PathVariable Long id,
@@ -187,6 +190,7 @@ public class StudentRegistrationController {
         registrationMapper.updateById(reg);
         return Result.success();
     }
+
 
     /** 团队报名详情 */
     @GetMapping("/team/{id}")
@@ -222,6 +226,7 @@ public class StudentRegistrationController {
         map.put("teamName", team != null ? team.getTeamName() : "");
         return Result.success(map);
     }
+
 
     /** 编辑团队报名（仅队长+待审核状态可改） */
     @PutMapping("/team/{id}")

@@ -114,7 +114,7 @@ async function handleQuit(t: any) {
     await quitTeam(t.id)
     ElMessage.success('已退出团队')
     teams.value = teams.value.filter((x) => x.id !== t.id)
-  } catch {}
+  } catch { console.error('[MyTeams] 操作失败') }
 }
 
 onMounted(() => {

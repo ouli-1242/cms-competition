@@ -21,6 +21,7 @@ import {
 } from '@element-plus/icons-vue'
 import { register } from '@/api/auth'
 
+
 const router = useRouter()
 
 // ====== 表单数据 ======

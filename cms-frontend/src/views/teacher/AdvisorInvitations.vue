@@ -37,6 +37,7 @@ async function loadInvitations() {
   }
 }
 
+
 async function loadTeams() {
   loading.value = true
   try {

@@ -258,6 +258,7 @@ async function handleCreateTeam() {
   }
 }
 
+
 async function handleJoinTeam() {
   if (!joinCode.value.trim()) {
     ElMessage.warning('请输入邀请码')
@@ -274,6 +275,7 @@ async function handleJoinTeam() {
     teamSubmitting.value = false
   }
 }
+
 
 function goToMyTeams() {
   teamDialogVisible.value = false

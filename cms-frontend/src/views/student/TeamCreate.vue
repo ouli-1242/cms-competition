@@ -57,6 +57,7 @@ function toggleStudent(s: any) {
   }
 }
 
+
 function isSelectedStudent(id: number) {
   return selectedStudents.value.some(x => x.id === id)
 }
@@ -87,6 +88,7 @@ async function doSearchTeachers() {
 function selectTeacher(t: any) {
   selectedTeacher.value = selectedTeacher.value?.id === t.id ? null : t
 }
+
 
 function clearTeacher() {
   selectedTeacher.value = null

@@ -111,6 +111,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return team;
     }
 
+
     @Override
     @Transactional
     public void joinTeam(String inviteCode, Long userId) {
@@ -143,6 +144,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         notificationService.asyncNotify(team.getCaptainId(), "有新成员申请加入您的团队，请及时审核", "TEAM");
     }
 
+
     @Override
     public List<Map<String, Object>> getMyTeam(Long userId) {
         List<TeamMember> memberships = teamMemberMapper.selectList(new LambdaQueryWrapper<TeamMember>()
@@ -174,6 +176,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return result;
     }
 
+
     @Override
     public void reviewMember(Long memberId, Boolean pass, Long callerId) {
         TeamMember m = teamMemberMapper.selectById(memberId);
@@ -184,6 +187,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         m.setStatus(pass ? 1 : 2);
         teamMemberMapper.updateById(m);
     }
+
 
     @Override
     @Transactional
@@ -197,6 +201,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             .eq(TeamMember::getUserId, userId));
         notificationService.asyncNotify(userId, "您已被踢出团队 " + team.getTeamName(), "TEAM");
     }
+
 
     @Override
     @Transactional
@@ -227,6 +232,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         this.updateById(team);
         notificationService.asyncNotify(newCaptainId, "您已成为团队 " + team.getTeamName() + " 的队长", "TEAM");
     }
+
 
     @Override
     @Transactional
@@ -362,6 +368,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         this.updateById(team);
     }
 
+
     @Override
     @Transactional
     public void recoverTeam(Long teamId, Long userId) {
@@ -387,4 +394,5 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }
         throw new BusinessException("邀请码生成失败，请重试");
     }
+
 }

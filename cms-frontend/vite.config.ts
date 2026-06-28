@@ -29,5 +29,16 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'element-plus': ['element-plus'],
+          echarts: ['echarts'],
+          xlsx: ['xlsx']
+        }
+      }
+    }
   }
 })

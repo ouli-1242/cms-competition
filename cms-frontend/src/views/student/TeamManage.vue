@@ -42,7 +42,7 @@ async function loadTeam() {
         try {
           const comp: any = await getCompetitionDetail(res.team.competitionId)
           if (comp) compTitle = comp.title
-        } catch {}
+        } catch { console.error('[TeamManage] 操作失败') }
       }
       const allMembers = (res.members || []).map((m: any) => ({
           memberId: m.id,
@@ -98,7 +98,7 @@ async function handleRemoveMember(member: any) {
     team.value.members = team.value.members.filter((m: any) => m.id !== member.id)
     team.value.currentCount--
     ElMessage.success('已移除')
-  } catch {}
+  } catch { console.error('[TeamManage] 操作失败') }
 }
 
 async function handleAudit(app: any, approve: boolean) {
@@ -110,8 +110,9 @@ async function handleAudit(app: any, approve: boolean) {
       team.value.currentCount++
     }
     ElMessage.success(approve ? '已通过' : '已拒绝')
-  } catch (e) {}
+  } catch (e) { console.error('[TeamManage] 操作失败:', e) }
 }
+
 
 async function handleDissolve() {
   try {
@@ -123,7 +124,7 @@ async function handleDissolve() {
     await dissolveTeam(team.value.id)
     ElMessage.success('团队已解散')
     router.push('/student-center/my-teams')
-  } catch {}
+  } catch { console.error('[TeamManage] 操作失败') }
 }
 
 async function handleSearchTeachers() {
