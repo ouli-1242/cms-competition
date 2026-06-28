@@ -45,35 +45,35 @@ const exportVisible = ref(false)
 const statCards = computed(() => [
   {
     label: '竞赛总数',
-    value: overview.value.competitionCount,
+    value: Math.floor(overview.value.competitionCount),
     icon: Trophy,
     color: '#2b6cb0',
     bg: 'linear-gradient(135deg, #ebf4fb 0%, #d6e8ff 100%)'
   },
   {
     label: '报名总数',
-    value: overview.value.totalCount,
+    value: Math.floor(overview.value.totalCount),
     icon: Document,
     color: '#6b46c1',
     bg: 'linear-gradient(135deg, #f5f0ff 0%, #e9d8fd 100%)'
   },
   {
     label: '个人报名',
-    value: overview.value.individualCount,
+    value: Math.floor(overview.value.individualCount),
     icon: User,
     color: '#2f855a',
     bg: 'linear-gradient(135deg, #f0faf4 0%, #c6f6d5 100%)'
   },
   {
     label: '团队报名',
-    value: overview.value.teamCount,
+    value: Math.floor(overview.value.teamCount),
     icon: UserFilled,
     color: '#c05621',
     bg: 'linear-gradient(135deg, #fff5e6 0%, #feebc8 100%)'
   },
   {
     label: '已通过',
-    value: overview.value.passedCount,
+    value: Math.floor(overview.value.passedCount),
     icon: CircleCheck,
     color: '#276749',
     bg: 'linear-gradient(135deg, #f0faf4 0%, #c6f6d5 100%)'
@@ -184,7 +184,7 @@ function initBarChart() {
     },
     series: [{
       name: '报名人数',
-      data: detailList.value.map((d) => d.total),
+      data: detailList.value.map((d) => Math.floor(d.total)),
       type: 'bar',
       barMaxWidth: 40,
       itemStyle: {
@@ -274,7 +274,7 @@ function initPieChart() {
       data: [
         {
           name: '已通过',
-          value: o.passedCount,
+          value: Math.floor(o.passedCount),
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
               { offset: 0, color: '#68d391' },
@@ -284,7 +284,7 @@ function initPieChart() {
         },
         {
           name: '待审核',
-          value: o.pendingCount,
+          value: Math.floor(o.pendingCount),
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
               { offset: 0, color: '#fbd38d' },
@@ -294,7 +294,7 @@ function initPieChart() {
         },
         {
           name: '未通过',
-          value: o.rejectedCount,
+          value: Math.floor(o.rejectedCount),
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
               { offset: 0, color: '#fc8181' },
@@ -389,22 +389,22 @@ onUnmounted(() => {
         </el-table-column>
         <el-table-column prop="total" label="总报名" width="120" align="center">
           <template #default="{ row }">
-            <span class="num-badge total">{{ row.total }}</span>
+            <span class="num-badge total">{{ Math.floor(row.total) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="approved" label="已通过" width="120" align="center">
           <template #default="{ row }">
-            <span class="num-badge approved">{{ row.approved }}</span>
+            <span class="num-badge approved">{{ Math.floor(row.approved) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="pending" label="待审核" width="120" align="center">
           <template #default="{ row }">
-            <span class="num-badge pending">{{ row.pending }}</span>
+            <span class="num-badge pending">{{ Math.floor(row.pending) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="rejected" label="未通过" width="120" align="center">
           <template #default="{ row }">
-            <span class="num-badge rejected">{{ row.rejected }}</span>
+            <span class="num-badge rejected">{{ Math.floor(row.rejected) }}</span>
           </template>
         </el-table-column>
       </el-table>

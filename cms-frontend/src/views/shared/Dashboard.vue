@@ -38,17 +38,17 @@ const apiStats = ref<{
 
 // 管理员视角卡片
 const adminCards = computed(() => [
-  { label: '竞赛总数', value: apiStats.value.competitionCount, color: '#2b6cb0', bg: '#eaf2fb' },
-  { label: '报名总数', value: apiStats.value.totalCount, color: '#f6ad55', bg: '#fff5e6' },
-  { label: '已通过', value: apiStats.value.passedCount, color: '#48bb78', bg: '#f0faf4' },
-  { label: '待审核', value: apiStats.value.pendingCount, color: '#e53e3e', bg: '#fef5f5' }
+  { label: '竞赛总数', value: Math.floor(apiStats.value.competitionCount), color: '#2b6cb0', bg: '#eaf2fb' },
+  { label: '报名总数', value: Math.floor(apiStats.value.totalCount), color: '#f6ad55', bg: '#fff5e6' },
+  { label: '已通过', value: Math.floor(apiStats.value.passedCount), color: '#48bb78', bg: '#f0faf4' },
+  { label: '待审核', value: Math.floor(apiStats.value.pendingCount), color: '#e53e3e', bg: '#fef5f5' }
 ])
 
 // 老师视角卡片
 const teacherCards = computed(() => [
-  { label: '指导竞赛数', value: apiStats.value.competitionCount, color: '#2b6cb0', bg: '#eaf2fb' },
-  { label: '报名总数', value: apiStats.value.totalCount, color: '#f6ad55', bg: '#fff5e6' },
-  { label: '待审核', value: apiStats.value.pendingCount, color: '#e53e3e', bg: '#fef5f5' },
+  { label: '指导竞赛数', value: Math.floor(apiStats.value.competitionCount), color: '#2b6cb0', bg: '#eaf2fb' },
+  { label: '报名总数', value: Math.floor(apiStats.value.totalCount), color: '#f6ad55', bg: '#fff5e6' },
+  { label: '待审核', value: Math.floor(apiStats.value.pendingCount), color: '#e53e3e', bg: '#fef5f5' },
   { label: '通过率', value: apiStats.value.passRate + '%', color: '#48bb78', bg: '#f0faf4' }
 ])
 
@@ -79,13 +79,14 @@ function initChart() {
     },
     yAxis: {
       type: 'value',
+      minInterval: 1,
       axisLine: { show: false },
       axisTick: { show: false },
       splitLine: { lineStyle: { color: '#edf2f7', type: 'dashed' } },
       axisLabel: { color: '#4a5568' }
     },
     series: [{
-      data: [s.individualCount, s.teamCount, s.passedCount, s.totalCount],
+      data: [Math.floor(s.individualCount), Math.floor(s.teamCount), Math.floor(s.passedCount), Math.floor(s.totalCount)],
       type: 'bar',
       barWidth: 32,
       itemStyle: {
