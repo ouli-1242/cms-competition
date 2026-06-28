@@ -13,7 +13,7 @@ CREATE TABLE `user` (
   `nickname` VARCHAR(50),
   `real_name` VARCHAR(50),
   `role` VARCHAR(20) NOT NULL DEFAULT 'STUDENT' COMMENT 'STUDENT/TEACHER/ADMIN',
-  `school` VARCHAR(100),
+  `college` VARCHAR(100),
   `phone` VARCHAR(20),
   `email` VARCHAR(100),
   `avatar` VARCHAR(255),
@@ -172,7 +172,7 @@ CREATE TABLE `team_advisor` (
 -- 测试数据（密码统一为 123456）
 -- BCrypt: $2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu
 -- =====================================================
-INSERT INTO `user`(username,password,nickname,real_name,role,school,phone,avatar) VALUES
+INSERT INTO `user`(username,password,nickname,real_name,role,college,phone,avatar) VALUES
 ('admin',   '$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '超级管理员', '管理员',  'ADMIN',   'XX大学', '13800000000', '/images/avatars/avatar1.png'),
 ('teacher1','$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '张老师',     '张老师',  'TEACHER', 'XX大学', '13800000001', '/images/avatars/avatar2.png'),
 ('teacher2','$2a$10$jJ9OSKq8/yVHgm2INRRY7eP5PC0xG0baMOhswxQSuD3FJEbb.o3eu', '李老师',     '李老师',  'TEACHER', 'XX大学', '13800000002', '/images/avatars/avatar3.png'),

@@ -58,6 +58,7 @@ export function updateUserInfo(data: {
   nickname?: string
   realName?: string
   school?: string
+  college?: string
   phone?: string
   email?: string
   avatar?: string
