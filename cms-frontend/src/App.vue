@@ -52,9 +52,27 @@ body,
   --el-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
 }
 
-// Element Plus 按钮圆角微调
+// Element Plus 按钮优化
 .el-button {
   border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.el-button--primary {
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(43, 108, 176, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
 }
 
 // Element Plus 卡片优化
@@ -83,6 +101,14 @@ body,
   }
 }
 
+.el-table__body tr {
+  transition: background-color 0.15s ease;
+
+  &:hover > td.el-table__cell {
+    background-color: #f8fafc;
+  }
+}
+
 // Element Plus 标签微调
 .el-tag {
   border-radius: 4px;
@@ -99,10 +125,23 @@ body,
 .el-input__wrapper {
   border-radius: 6px;
   box-shadow: 0 0 0 1px #e2e8f0 inset;
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
 
   &:hover {
     box-shadow: 0 0 0 1px #a0aec0 inset;
+  }
+}
+
+.el-input.is-focus .el-input__wrapper {
+  box-shadow: 0 0 0 1px #2b6cb0 inset, 0 0 0 3px rgba(43, 108, 176, 0.12);
+}
+
+.el-textarea__inner {
+  border-radius: 6px;
+  transition: box-shadow 0.2s ease;
+
+  &:focus {
+    box-shadow: 0 0 0 1px #2b6cb0 inset, 0 0 0 3px rgba(43, 108, 176, 0.12);
   }
 }
 

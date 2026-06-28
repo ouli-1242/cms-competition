@@ -145,17 +145,22 @@ function logout() {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-size: $font-size-base;
-  transition: all $transition-fast;
+  transition: all $transition-base;
   position: relative;
   cursor: pointer;
 
   .menu-icon {
     font-size: 18px;
+    transition: transform $transition-base;
   }
 
   &:hover {
     background: rgba(255, 255, 255, 0.12);
     color: #fff;
+
+    .menu-icon {
+      transform: scale(1.1);
+    }
   }
 
   &.active {
@@ -163,6 +168,22 @@ function logout() {
     color: #fff;
     font-weight: $font-weight-semibold;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    .menu-icon {
+      transform: scale(1.1);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 20px;
+      background: #fff;
+      border-radius: 2px;
+    }
   }
 }
 

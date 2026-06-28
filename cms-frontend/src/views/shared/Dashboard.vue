@@ -36,25 +36,64 @@ const apiStats = ref<{
   passRate: 0
 })
 
+// 数字滚动动画状态
+const animValues = ref<Record<string, number>>({})
+let animFrames: number[] = []
+
+function animateNumber(key: string, target: number | string, duration = 800) {
+  // 移除百分号判断是否是数字
+  const isPercent = typeof target === 'string' && target.endsWith('%')
+  const numTarget = isPercent ? parseFloat(target as string) : (typeof target === 'number' ? target : 0)
+
+  const startTime = performance.now()
+  const from = animValues.value[key] || 0
+
+  function step(now: number) {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    // ease-out curve
+    const eased = 1 - Math.pow(1 - progress, 3)
+    const current = from + (numTarget - from) * eased
+    animValues.value[key] = isPercent
+      ? (Math.round(current * 10) / 10) as any
+      : Math.round(current)
+    if (progress < 1) {
+      animFrames.push(requestAnimationFrame(step))
+    }
+  }
+
+  animFrames.push(requestAnimationFrame(step))
+}
+
+function clearAnims() {
+  animFrames.forEach(id => cancelAnimationFrame(id))
+  animFrames = []
+}
+
 // 管理员视角卡片
 const adminCards = computed(() => [
-  { label: '竞赛总数', value: Math.floor(apiStats.value.competitionCount), color: '#2b6cb0', bg: '#eaf2fb' },
-  { label: '报名总数', value: Math.floor(apiStats.value.totalCount), color: '#f6ad55', bg: '#fff5e6' },
-  { label: '已通过', value: Math.floor(apiStats.value.passedCount), color: '#48bb78', bg: '#f0faf4' },
-  { label: '待审核', value: Math.floor(apiStats.value.pendingCount), color: '#e53e3e', bg: '#fef5f5' }
+  { label: '竞赛总数', value: Math.floor(apiStats.value.competitionCount), key: 'competitionCount', color: '#2b6cb0', bg: '#eaf2fb' },
+  { label: '报名总数', value: Math.floor(apiStats.value.totalCount), key: 'totalCount', color: '#f6ad55', bg: '#fff5e6' },
+  { label: '已通过', value: Math.floor(apiStats.value.passedCount), key: 'passedCount', color: '#48bb78', bg: '#f0faf4' },
+  { label: '待审核', value: Math.floor(apiStats.value.pendingCount), key: 'pendingCount', color: '#e53e3e', bg: '#fef5f5' }
 ])
 
 // 老师视角卡片
 const teacherCards = computed(() => [
-  { label: '指导竞赛数', value: Math.floor(apiStats.value.competitionCount), color: '#2b6cb0', bg: '#eaf2fb' },
-  { label: '报名总数', value: Math.floor(apiStats.value.totalCount), color: '#f6ad55', bg: '#fff5e6' },
-  { label: '待审核', value: Math.floor(apiStats.value.pendingCount), color: '#e53e3e', bg: '#fef5f5' },
-  { label: '通过率', value: apiStats.value.passRate + '%', color: '#48bb78', bg: '#f0faf4' }
+  { label: '指导竞赛数', value: Math.floor(apiStats.value.competitionCount), key: 'competitionCount', color: '#2b6cb0', bg: '#eaf2fb' },
+  { label: '报名总数', value: Math.floor(apiStats.value.totalCount), key: 'totalCount', color: '#f6ad55', bg: '#fff5e6' },
+  { label: '待审核', value: Math.floor(apiStats.value.pendingCount), key: 'pendingCount', color: '#e53e3e', bg: '#fef5f5' },
+  { label: '通过率', value: apiStats.value.passRate + '%', key: 'passRate', color: '#48bb78', bg: '#f0faf4' }
 ])
 
+function displayValue(s: { key: string; value: string | number }) {
+  const animated = animValues.value[s.key]
+  if (animated === undefined || animated === null) return s.value
+  // 通过率显示带 %
+  if (s.key === 'passRate') return animated + '%'
+  return animated
+}
 const stats = computed(() => (isAdmin.value ? adminCards.value : teacherCards.value))
-
-// ECharts
 const chartRef = ref<HTMLDivElement | null>(null)
 let chartInstance: echarts.ECharts | null = null
 
@@ -117,11 +156,24 @@ onMounted(async () => {
   // 等 DOM 渲染完成后再初始化图表
   setTimeout(initChart, 100)
   window.addEventListener('resize', resizeChart)
+
+  // 触发数字滚动动画
+  setTimeout(() => {
+    const s = apiStats.value
+    animateNumber('competitionCount', s.competitionCount)
+    animateNumber('totalCount', s.totalCount)
+    animateNumber('passedCount', s.passedCount)
+    animateNumber('pendingCount', s.pendingCount)
+    if (!isAdmin.value) {
+      animateNumber('passRate', s.passRate + '%')
+    }
+  }, 200)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', resizeChart)
   chartInstance?.dispose()
+  clearAnims()
 })
 </script>
 
@@ -133,7 +185,7 @@ onUnmounted(() => {
     <div class="stat-grid">
       <div v-for="(s, i) in stats" :key="i" class="stat-card" :style="{ '--card-color': s.color }">
         <p class="stat-label">{{ s.label }}</p>
-        <p class="stat-value" :style="{ color: s.color }">{{ s.value }}</p>
+        <p class="stat-value" :style="{ color: s.color }">{{ displayValue(s) }}</p>
       </div>
     </div>
 

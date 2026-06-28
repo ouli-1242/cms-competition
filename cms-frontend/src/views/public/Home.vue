@@ -253,12 +253,14 @@ const statusType = competitionStatusType
       </div>
       <el-row :gutter="16">
         <el-col
-          v-for="c in displayHot"
+          v-for="(c, idx) in displayHot"
           :key="c.id"
           :xs="12"
           :sm="8"
           :md="8"
           :lg="8"
+          :style="{ animationDelay: `${idx * 0.08}s` }"
+          class="card-col"
         >
           <div class="comp-card" @click="router.push(`/competitions/${c.id}`)">
             <div class="comp-cover" :style="c.cover ? undefined : coverStyle(c.title)">
@@ -295,12 +297,14 @@ const statusType = competitionStatusType
       </div>
       <el-row :gutter="16">
         <el-col
-          v-for="c in displayLatest"
+          v-for="(c, idx) in displayLatest"
           :key="c.id"
           :xs="12"
           :sm="8"
           :md="8"
           :lg="8"
+          :style="{ animationDelay: `${idx * 0.08}s` }"
+          class="card-col"
         >
           <div class="comp-card" @click="router.push(`/competitions/${c.id}`)">
             <div class="comp-cover" :style="c.cover ? undefined : coverStyle(c.title)">
@@ -328,6 +332,11 @@ const statusType = competitionStatusType
 
 <style lang="scss" scoped>
 @use '@/styles/variables.scss' as *;
+
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .home {
   max-width: 1280px;
@@ -607,6 +616,10 @@ const statusType = competitionStatusType
 }
 
 // ====== 竞赛卡片 ======
+.card-col {
+  animation: cardSlideUp 0.5s ease both;
+}
+
 .comp-card {
   background: $bg-card;
   border-radius: $radius-md;
@@ -625,6 +638,11 @@ const statusType = competitionStatusType
     .comp-cover img {
       transform: scale(1.05);
     }
+  }
+
+  &:active {
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: $shadow-sm;
   }
 }
 

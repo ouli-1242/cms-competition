@@ -208,12 +208,14 @@ onMounted(() => {
     <!-- 卡片网格 -->
     <el-row v-loading="loading" :gutter="16" class="card-grid">
       <el-col
-        v-for="c in list"
+        v-for="(c, idx) in list"
         :key="c.id"
         :xs="12"
         :sm="12"
         :md="8"
         :lg="8"
+        :style="{ animationDelay: `${idx * 0.06}s` }"
+        class="card-col"
       >
         <div class="comp-card" @click="router.push(`/competitions/${c.id}`)">
           <div class="comp-cover" :style="c.cover ? undefined : coverStyle(c.title)">
@@ -433,6 +435,15 @@ onMounted(() => {
 }
 
 // ===== 卡片网格 =====
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-col {
+  animation: cardSlideUp 0.45s ease both;
+}
+
 .card-grid {
   min-height: 200px;
 }
@@ -455,6 +466,11 @@ onMounted(() => {
     .cover-img {
       transform: scale(1.05);
     }
+  }
+
+  &:active {
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: $shadow-sm;
   }
 }
 
