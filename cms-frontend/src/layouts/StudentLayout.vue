@@ -75,6 +75,8 @@ function logout() {
   background: $bg-card;
   border-right: 1px solid $border-light;
   box-shadow: 1px 0 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -97,11 +99,37 @@ function logout() {
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+  transition: transform $transition-base;
+
+  .logo:hover & {
+    transform: rotate(-10deg) scale(1.05);
+  }
 }
 
 .menu {
-  border-right: none;
+  border-right: none !important;
   padding-top: $space-4;
+  flex: 1;
+
+  .el-menu-item {
+    margin: 2px $space-2;
+    border-radius: $radius-md;
+    transition: all $transition-base;
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-50, #e8f0fe);
+      color: $primary;
+    }
+
+    &.is-active {
+      background: linear-gradient(135deg, $primary-50, #e0efff);
+      color: $primary;
+      font-weight: $font-weight-semibold;
+      box-shadow: 0 1px 4px rgba(43, 108, 176, 0.12);
+      border-radius: $radius-md;
+    }
+  }
 }
 
 .content {

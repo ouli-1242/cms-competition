@@ -370,18 +370,36 @@ onMounted(() => { loadCompetitions(1); loadData() })
   display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 $space-5;
   border: none; background: linear-gradient(135deg, $primary, $primary-hover); color: #fff;
   font-size: $font-size-sm; font-weight: $font-weight-medium; border-radius: $radius-base;
-  cursor: pointer; box-shadow: 0 4px 12px rgba(43, 108, 176, 0.25); transition: all $transition-fast;
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(43, 108, 176, 0.35); }
-  svg { flex-shrink: 0; }
+  cursor: pointer; box-shadow: 0 4px 12px rgba(43, 108, 176, 0.25); transition: all $transition-base;
+  position: relative; overflow: hidden;
+
+  &::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    transform: translateX(-100%); transition: transform 0.5s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px); box-shadow: 0 6px 20px rgba(43, 108, 176, 0.35);
+    &::after { transform: translateX(100%); }
+  }
+
+  &:active { transform: translateY(0) scale(0.97); }
+
+  svg { flex-shrink: 0; position: relative; z-index: 1; }
+  > :not(svg):not(.btn-icon) { position: relative; z-index: 1; }
 }
 
-.tab-bar { display: flex; border-bottom: 2px solid $border-light; }
+.tab-bar {
+  display: flex; background: $bg-card; border-radius: $radius-md; padding: 4px;
+  box-shadow: $shadow-sm; margin-bottom: $space-4;
+}
 .tab-item {
-  padding: $space-2 $space-5; border: none; background: transparent; color: $text-secondary;
-  font-size: $font-size-sm; font-weight: $font-weight-medium; cursor: pointer; position: relative; transition: all $transition-fast;
-  &::after { content: ''; position: absolute; left: 0; bottom: -2px; width: 100%; height: 2px; background: transparent; transition: background $transition-fast; }
-  &:hover { color: $primary; }
-  &.active { color: $primary; font-weight: $font-weight-semibold; &::after { background: $primary; } }
+  flex: 1; text-align: center; padding: $space-2 $space-5; border: none; background: transparent; color: $text-secondary;
+  font-size: $font-size-sm; font-weight: $font-weight-medium; cursor: pointer; border-radius: $radius-base;
+  transition: all $transition-base;
+  &:hover { color: $primary; background: $primary-50; }
+  &.active { background: $primary; color: #fff; box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3); }
 }
 
 .filter-bar {
@@ -408,8 +426,21 @@ onMounted(() => { loadCompetitions(1); loadData() })
 .btn-search {
   height: 36px; padding: 0 $space-5; border: none; background: linear-gradient(135deg, $primary, $primary-hover);
   color: #fff; font-size: $font-size-sm; font-weight: $font-weight-medium; border-radius: $radius-base;
-  cursor: pointer; transition: all $transition-fast;
-  &:hover { transform: translateY(-1px); }
+  cursor: pointer; box-shadow: 0 2px 8px rgba(43, 108, 176, 0.2); transition: all $transition-base;
+  position: relative; overflow: hidden;
+
+  &::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    transform: translateX(-100%); transition: transform 0.5s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px); box-shadow: 0 4px 14px rgba(43, 108, 176, 0.35);
+    &::after { transform: translateX(100%); }
+  }
+
+  &:active { transform: translateY(0) scale(0.97); }
 }
 .btn-reset {
   height: 36px; padding: 0 $space-5; border: 1px solid $border-base; background: $bg-card;

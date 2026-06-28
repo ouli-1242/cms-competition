@@ -297,6 +297,11 @@ function goChangePwd() {
   padding: $space-5;
   margin-bottom: $space-4;
   box-shadow: $shadow-sm;
+  transition: box-shadow $transition-base, transform $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
 }
 
 .section-header {
@@ -324,10 +329,35 @@ function goChangePwd() {
   border-radius: $radius-base;
   font-size: $font-size-sm;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: $primary-50;
+    opacity: 0;
+    transition: opacity $transition-base;
+  }
 
   &:hover {
-    background: $primary-50;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.15);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -361,12 +391,25 @@ function goChangePwd() {
   display: flex;
   align-items: center;
   gap: $space-3;
-  padding: $space-3 0;
+  padding: $space-3 $space-4;
+  border-radius: $radius-md;
   cursor: pointer;
-  transition: opacity $transition-fast;
+  transition: all $transition-base;
+  border: 1px solid transparent;
+  margin: 0 -$space-4;
 
   &:hover {
-    opacity: 0.7;
+    background: linear-gradient(135deg, $primary-50, #e8f0fe);
+    border-color: $primary-100;
+
+    .action-arrow {
+      transform: translateX(4px);
+      color: $primary;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 

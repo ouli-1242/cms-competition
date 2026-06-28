@@ -165,3 +165,229 @@ button {
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
+// ===== 脉冲动画 =====
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+// ===== 弹窗/抽屉入场 =====
+@keyframes dialogSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dialogFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ===== 悬停上浮卡片（全局复用） =====
+.hover-card {
+  transition: all $transition-base;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.985);
+  }
+}
+
+// ===== 状态标签 =====
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  &.status-pending {
+    background: #fff5e6;
+    color: $warning;
+    &::before { background: $warning; }
+  }
+
+  &.status-approved {
+    background: #f0faf4;
+    color: $success;
+    &::before { background: $success; }
+  }
+
+  &.status-rejected {
+    background: #fef5f5;
+    color: $danger;
+    &::before { background: $danger; }
+  }
+
+  &.status-info {
+    background: $primary-50;
+    color: $primary;
+    &::before { background: $primary; }
+  }
+}
+
+// ===== 分隔线装饰 =====
+.divider-text {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $border-light;
+  }
+}
+
+// ===== 页面标题区 =====
+.page-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-5;
+  flex-wrap: wrap;
+  gap: $space-3;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+// ===== 固定宽高容器 =====
+.aspect-video {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+// ===== 全局 Element Plus 弹窗动画增强 =====
+.el-overlay {
+  animation: dialogFadeIn 0.2s ease;
+}
+
+.el-dialog {
+  border-radius: $radius-lg !important;
+  overflow: hidden;
+
+  .el-dialog__header {
+    padding: $space-4 $space-6;
+    border-bottom: 1px solid $border-light;
+    margin: 0;
+  }
+
+  .el-dialog__body {
+    padding: $space-5 $space-6;
+  }
+
+  .el-dialog__footer {
+    padding: $space-3 $space-6;
+    border-top: 1px solid $border-light;
+  }
+}
+
+// ===== Element Plus 抽屉动画 =====
+.el-drawer {
+  border-radius: $radius-lg 0 0 $radius-lg;
+}
+
+// ===== Element Plus Message 消息框优化 =====
+.el-message {
+  border-radius: $radius-base;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+// ===== Element Plus Card =====
+.el-card {
+  border-radius: $radius-md;
+  border: 1px solid $border-light;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    border-color: $primary-100;
+  }
+}
+
+// ===== Element Plus Tag 增强圆角 =====
+.el-tag {
+  border-radius: $radius-base;
+}
+
+// ===== Element Plus Select/DatePicker 弹出面板 =====
+.el-popper {
+  border-radius: $radius-md;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+// ===== 通用空状态 =====
+.empty-container {
+  text-align: center;
+  padding: $space-10 $space-6;
+  color: $text-secondary;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: $space-3;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: $font-size-sm;
+    margin: 0 0 $space-4;
+  }
+}
+
+// ===== 通用 Loading 覆盖 =====
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(2px);
+}
+
+// ===== Stagger Animation Helper =====
+@for $i from 1 through 10 {
+  .stagger-#{$i} {
+    animation-delay: #{$i * 0.06}s;
+  }
+}

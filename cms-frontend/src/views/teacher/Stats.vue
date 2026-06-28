@@ -261,10 +261,13 @@ onUnmounted(() => {
   padding: $space-4 $space-5;
   box-shadow: $shadow-sm;
   text-align: center;
-  transition: box-shadow $transition-fast;
+  transition: all $transition-base;
+  cursor: default;
 
   &:hover {
-    box-shadow: $shadow-base;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+    border-color: $primary-100;
   }
 
   &.highlight {

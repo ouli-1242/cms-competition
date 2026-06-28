@@ -233,6 +233,11 @@ onMounted(() => {
   background: $bg-card;
   border-radius: $radius-md;
   box-shadow: $shadow-sm;
+  transition: box-shadow $transition-base;
+
+  &:focus-within {
+    box-shadow: $shadow-md;
+  }
 }
 
 .filter-item {

@@ -239,35 +239,30 @@ onMounted(() => {
 
 .tab-bar {
   display: flex;
-  gap: $space-1;
+  background: $bg-card;
+  border-radius: $radius-md;
+  padding: 4px;
+  box-shadow: $shadow-sm;
   margin-bottom: $space-4;
-  border-bottom: 2px solid $border-light;
 }
 
 .tab-item {
+  flex: 1;
+  text-align: center;
   padding: $space-2 $space-5;
   border: none;
   background: transparent;
   font-size: $font-size-base;
   color: $text-secondary;
   cursor: pointer;
-  position: relative;
-  transition: color $transition-fast;
+  border-radius: $radius-base;
+  transition: all $transition-base;
+  &:hover { color: $primary; background: $primary-50; }
   &.active {
-    color: $primary;
+    background: $primary;
+    color: #fff;
     font-weight: $font-weight-semibold;
-    &::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -2px;
-      height: 2px;
-      background: $primary;
-    }
-  }
-  &:hover {
-    color: $primary;
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3);
   }
 }
 
