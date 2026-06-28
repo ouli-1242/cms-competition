@@ -119,6 +119,7 @@ function initBarChart() {
     },
     yAxis: {
       type: 'value',
+      minInterval: 1,
       axisLine: { show: false },
       axisTick: { show: false },
       splitLine: { lineStyle: { color: '#edf2f7', type: 'dashed' } },
@@ -129,7 +130,7 @@ function initBarChart() {
         name: '报名总数',
         type: 'bar',
         barWidth: 40,
-        data: detailList.value.map((d) => d.total),
+        data: detailList.value.map((d) => Math.floor(d.total)),
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: '#ed8936'
@@ -146,7 +147,7 @@ function initBarChart() {
         name: '已通过',
         type: 'bar',
         barWidth: 40,
-        data: detailList.value.map((d) => d.passed),
+        data: detailList.value.map((d) => Math.floor(d.passed)),
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: '#48bb78'
@@ -185,23 +186,23 @@ onUnmounted(() => {
     <div class="stat-cards">
       <div class="stat-card">
         <div class="stat-label">指导竞赛数</div>
-        <div class="stat-value">{{ overview.competitionCount }}</div>
+        <div class="stat-value">{{ Math.floor(overview.competitionCount) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">报名总数</div>
-        <div class="stat-value">{{ overview.totalCount }}</div>
+        <div class="stat-value">{{ Math.floor(overview.totalCount) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">个人赛</div>
-        <div class="stat-value">{{ overview.individualCount }}</div>
+        <div class="stat-value">{{ Math.floor(overview.individualCount) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">团队赛</div>
-        <div class="stat-value">{{ overview.teamCount }}</div>
+        <div class="stat-value">{{ Math.floor(overview.teamCount) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">已通过</div>
-        <div class="stat-value success">{{ overview.passedCount }}</div>
+        <div class="stat-value success">{{ Math.floor(overview.passedCount) }}</div>
       </div>
       <div class="stat-card highlight">
         <div class="stat-label">通过率</div>
@@ -219,9 +220,9 @@ onUnmounted(() => {
       <div class="summary-left">
         <h3 class="summary-title">整体通过率</h3>
         <p class="summary-desc">
-          共指导 <strong>{{ overview.competitionCount }}</strong> 项竞赛，
-          累计 <strong>{{ overview.totalCount }}</strong> 人次报名，
-          其中 <strong>{{ overview.passedCount }}</strong> 人通过审核
+          共指导 <strong>{{ Math.floor(overview.competitionCount) }}</strong> 项竞赛，
+          累计 <strong>{{ Math.floor(overview.totalCount) }}</strong> 人次报名，
+          其中 <strong>{{ Math.floor(overview.passedCount) }}</strong> 人通过审核
         </p>
       </div>
       <div class="summary-right">
