@@ -56,6 +56,12 @@ $shadow-base: 0 2px 8px rgba(0, 0, 0, 0.06);
 $shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
 $shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
 $shadow-card: 0 4px 20px rgba(43, 108, 176, 0.08);
+$shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.16);
+$shadow-glow: 0 4px 20px rgba(43, 108, 176, 0.12);
+$shadow-glow-sm: 0 2px 8px rgba(43, 108, 176, 0.06);
+
+// 渐变
+$gradient-primary: linear-gradient(135deg, $primary, #3182ce);
 
 // 字体
 $font-size-xs: 12px;

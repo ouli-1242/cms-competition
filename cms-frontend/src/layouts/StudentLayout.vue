@@ -74,6 +74,7 @@ function logout() {
   width: 220px;
   background: $bg-card;
   border-right: 1px solid $border-light;
+  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.03);
 }
 
 .logo {
@@ -85,6 +86,7 @@ function logout() {
   border-bottom: 1px solid $border-light;
   font-weight: $font-weight-semibold;
   color: $text-primary;
+  background: linear-gradient(135deg, #fafbfc, $bg-card);
 }
 .logo-icon {
   width: 32px;

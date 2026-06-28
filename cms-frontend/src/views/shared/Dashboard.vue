@@ -131,8 +131,8 @@ onUnmounted(() => {
 
     <!-- 统计卡片 -->
     <div class="stat-grid">
-      <div v-for="(s, i) in stats" :key="i" class="stat-card" :style="{ borderColor: s.color }">
-        <p class="stat-label" :style="{ color: s.color }">{{ s.label }}</p>
+      <div v-for="(s, i) in stats" :key="i" class="stat-card" :style="{ '--card-color': s.color }">
+        <p class="stat-label">{{ s.label }}</p>
         <p class="stat-value" :style="{ color: s.color }">{{ s.value }}</p>
       </div>
     </div>
@@ -150,7 +150,7 @@ onUnmounted(() => {
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: $space-5;
+  gap: $space-6;
 }
 
 .page-title {
@@ -172,12 +172,24 @@ onUnmounted(() => {
   border-radius: $radius-md;
   padding: $space-5 $space-6;
   text-align: center;
-  border-top: 3px solid;
+  border: 1px solid $border-light;
   box-shadow: $shadow-sm;
   transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-color);
+  }
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: $shadow-md;
   }
 }
@@ -186,11 +198,12 @@ onUnmounted(() => {
   margin: 0 0 $space-3;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
+  color: $text-secondary;
 }
 
 .stat-value {
   margin: 0;
-  font-size: 36px;
+  font-size: 40px;
   font-weight: $font-weight-bold;
   line-height: 1;
 }
@@ -201,17 +214,21 @@ onUnmounted(() => {
   border-radius: $radius-md;
   padding: $space-5;
   box-shadow: $shadow-sm;
+  border: 1px solid $border-light;
 }
 
 .chart {
   width: 100%;
-  height: 360px;
+  height: 380px;
 }
 
 // ===== 响应式 =====
 @media (max-width: 768px) {
   .stat-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .stat-value {
+    font-size: 32px;
   }
 }
 </style>

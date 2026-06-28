@@ -102,13 +102,14 @@ function logout() {
 // ===== 侧边栏 =====
 .sider {
   width: 220px;
-  background: linear-gradient(180deg, #4a90e2 0%, #2b6cb0 100%);
+  background: linear-gradient(180deg, #1e3a5f 0%, #2b5f8a 40%, #2b6cb0 100%);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   height: 100vh;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
 }
 
 .logo {
@@ -146,7 +147,9 @@ function logout() {
   align-items: center;
   gap: $space-3;
   padding: $space-3 $space-5;
-  color: rgba(255, 255, 255, 0.85);
+  margin: 0 $space-2;
+  border-radius: $radius-md;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-size: $font-size-base;
   transition: all $transition-fast;
@@ -158,24 +161,15 @@ function logout() {
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: #fff;
   }
 
   &.active {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.18);
     color: #fff;
     font-weight: $font-weight-semibold;
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: #fff;
-    }
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   }
 }
 

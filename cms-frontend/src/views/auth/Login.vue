@@ -288,23 +288,39 @@ function goForgot() {
 .blob-1 {
   width: 480px;
   height: 480px;
-  background: radial-gradient(circle, rgba(43, 108, 176, 0.3), transparent);
-  top: -100px;
-  left: -100px;
+  background: radial-gradient(circle, rgba(43, 108, 176, 0.25), transparent);
+  top: -120px;
+  left: -120px;
+  animation: blobFloat1 8s ease-in-out infinite alternate;
 }
 .blob-2 {
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle, rgba(246, 173, 85, 0.25), transparent);
+  background: radial-gradient(circle, rgba(246, 173, 85, 0.2), transparent);
   bottom: -80px;
   right: -80px;
+  animation: blobFloat2 10s ease-in-out infinite alternate;
 }
 .blob-3 {
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(72, 187, 120, 0.2), transparent);
-  top: 40%;
-  right: 20%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(72, 187, 120, 0.18), transparent);
+  top: 35%;
+  right: 15%;
+  animation: blobFloat3 7s ease-in-out infinite alternate;
+}
+
+@keyframes blobFloat1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(20px, 20px) scale(1.05); }
+}
+@keyframes blobFloat2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-15px, -15px) scale(1.08); }
+}
+@keyframes blobFloat3 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-10px, 10px) scale(1.06); }
 }
 
 // ===== 登录卡片 =====

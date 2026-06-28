@@ -445,14 +445,21 @@ onMounted(() => {
   transition: all $transition-base;
   box-shadow: $shadow-sm;
   margin-bottom: $space-4;
+  border: 1px solid $border-light;
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: $shadow-md;
+    border-color: $primary-100;
+
+    .cover-img {
+      transform: scale(1.05);
+    }
   }
 }
 
 .comp-cover {
-  height: 130px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -462,12 +469,14 @@ onMounted(() => {
   letter-spacing: 4px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   position: relative;
+  overflow: hidden;
 
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.2));
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.25));
+    z-index: 1;
   }
 }
 
@@ -482,6 +491,7 @@ onMounted(() => {
   object-fit: cover;
   position: absolute;
   inset: 0;
+  transition: transform 0.4s ease;
 }
 
 .status-tag {
@@ -489,8 +499,8 @@ onMounted(() => {
   top: $space-2;
   right: $space-2;
   z-index: 2;
-  backdrop-filter: blur(8px);
-  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.45) !important;
   border: none !important;
   color: #fff !important;
 }

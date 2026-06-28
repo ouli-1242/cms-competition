@@ -338,9 +338,9 @@ const statusType = competitionStatusType
 // ====== Hero ======
 .hero {
   position: relative;
-  height: 280px;
-  border-radius: $radius-md;
-  background: linear-gradient(135deg, #2b6cb0 0%, #3182ce 50%, #4299e1 100%);
+  height: 300px;
+  border-radius: $radius-lg;
+  background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 40%, #3182ce 70%, #4299e1 100%);
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -348,8 +348,8 @@ const statusType = competitionStatusType
   align-items: center;
   justify-content: center;
   color: #fff;
-  margin-bottom: $space-5;
-  box-shadow: 0 8px 24px rgba(43, 108, 176, 0.25);
+  margin-bottom: $space-6;
+  box-shadow: 0 8px 32px rgba(43, 108, 176, 0.2);
 }
 
 .hero-bg {
@@ -498,9 +498,10 @@ const statusType = competitionStatusType
 .search-bar {
   background: $bg-card;
   border-radius: $radius-md;
-  padding: $space-3 $space-5;
+  padding: $space-4 $space-5;
   margin-bottom: $space-6;
-  box-shadow: $shadow-sm;
+  box-shadow: $shadow-base;
+  border: 1px solid $border-light;
 }
 
 .search-inner {
@@ -535,19 +536,27 @@ const statusType = competitionStatusType
 }
 
 .search-btn {
-  height: 32px;
+  height: 36px;
   padding: 0 $space-6;
-  background: $primary;
+  background: linear-gradient(135deg, $primary, #3182ce);
   color: #fff;
   border: none;
   border-radius: $radius-base;
   font-size: $font-size-base;
+  font-weight: $font-weight-medium;
   cursor: pointer;
   transition: all $transition-fast;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.2);
 
   &:hover {
-    background: $primary-hover;
+    background: linear-gradient(135deg, $primary-hover, #2b6cb0);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -606,14 +615,21 @@ const statusType = competitionStatusType
   transition: all $transition-base;
   box-shadow: $shadow-sm;
   margin-bottom: $space-4;
+  border: 1px solid $border-light;
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: $shadow-md;
+    border-color: $primary-100;
+
+    .comp-cover img {
+      transform: scale(1.05);
+    }
   }
 }
 
 .comp-cover {
-  height: 120px;
+  height: 130px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -623,12 +639,14 @@ const statusType = competitionStatusType
   letter-spacing: 4px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   position: relative;
+  overflow: hidden;
 
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.15));
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.25));
+    z-index: 1;
   }
 }
 
@@ -643,6 +661,7 @@ const statusType = competitionStatusType
   object-fit: cover;
   position: absolute;
   inset: 0;
+  transition: transform 0.4s ease;
 }
 
 .comp-body {

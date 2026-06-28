@@ -163,7 +163,9 @@ function isActive(t: { path: string }) {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: $bg-card;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid $border-light;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
@@ -361,23 +363,37 @@ function isActive(t: { path: string }) {
   align-items: center;
   gap: $space-2;
   padding: $space-2 $space-3;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   color: $text-regular;
   text-decoration: none;
   font-size: $font-size-sm;
   transition: all $transition-fast;
   white-space: nowrap;
   overflow: hidden;
+  position: relative;
 
   &:hover {
-    background: $primary-50;
+    background: linear-gradient(135deg, $primary-50, #e8f0fe);
     color: $primary;
   }
 
   &.active {
-    background: $primary-50;
+    background: linear-gradient(135deg, $primary-50, #e0efff);
     color: $primary;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-semibold;
+    box-shadow: 0 1px 3px rgba(43, 108, 176, 0.1);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      border-radius: 0 2px 2px 0;
+      background: $primary;
+    }
   }
 }
 

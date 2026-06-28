@@ -465,16 +465,27 @@ function inputStyle(field: keyof typeof form) {
 .blob-1 {
   width: 480px;
   height: 480px;
-  background: radial-gradient(circle, rgba(43, 108, 176, 0.3), transparent);
-  top: -100px;
+  background: radial-gradient(circle, rgba(43, 108, 176, 0.25), transparent);
+  top: -120px;
   right: -100px;
+  animation: blobFloat1 8s ease-in-out infinite alternate;
 }
 .blob-2 {
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle, rgba(246, 173, 85, 0.25), transparent);
+  background: radial-gradient(circle, rgba(246, 173, 85, 0.2), transparent);
   bottom: -80px;
   left: -80px;
+  animation: blobFloat2 10s ease-in-out infinite alternate;
+}
+
+@keyframes blobFloat1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-15px, 15px) scale(1.05); }
+}
+@keyframes blobFloat2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(15px, -10px) scale(1.08); }
 }
 
 // ===== 注册卡片 =====
