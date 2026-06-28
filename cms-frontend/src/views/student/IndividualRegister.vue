@@ -436,8 +436,13 @@ onMounted(() => {
 <style lang="scss" scoped>
 @use '@/styles/variables.scss' as *;
 
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(43, 108, 176, 0.3); }
+  50% { box-shadow: 0 4px 24px rgba(43, 108, 176, 0.5); }
+}
+
 .reg-page {
-  max-width: 1280px;
+  max-width: 560px;
   margin: 0 auto;
   padding: $space-4 $space-6 $space-8;
 }
@@ -582,25 +587,43 @@ onMounted(() => {
 .btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: $space-2;
-  height: 44px;
+  height: 48px;
   padding: 0 $space-8;
   border: none;
   background: linear-gradient(135deg, $primary, $primary-hover);
   color: #fff;
   font-size: $font-size-md;
-  font-weight: $font-weight-medium;
+  font-weight: $font-weight-semibold;
   border-radius: $radius-base;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
-  transition: all $transition-fast;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(43, 108, 176, 0.45);
+    animation: btnPulse 2s ease-in-out infinite;
+
+    &::after {
+      transform: translateX(100%);
+    }
   }
   &:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: translateY(0) scale(0.97);
+    animation: none;
   }
   &:disabled {
     background: $bg-disabled;

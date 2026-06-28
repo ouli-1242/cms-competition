@@ -743,11 +743,26 @@ onMounted(() => {
   border-radius: $radius-base;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(43, 108, 176, 0.25);
-  transition: all $transition-fast;
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.35);
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
   }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(43, 108, 176, 0.35);
+
+    &::after { transform: translateX(100%); }
+  }
+  &:active:not(:disabled) { transform: translateY(0) scale(0.97); }
 }
 
 .btn-danger {

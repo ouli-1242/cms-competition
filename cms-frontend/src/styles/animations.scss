@@ -1,0 +1,210 @@
+// ===== 动画系统 =====
+// 本文件定义可在页面中通过 @include 引用的动画混合宏
+
+@use './variables.scss' as *;
+
+// ===== 关键帧动画 =====
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(43, 108, 176, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(43, 108, 176, 0.4);
+  }
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ===== 混合宏 =====
+@mixin animate-fadeInUp($duration: 0.5s, $delay: 0s) {
+  animation: fadeInUp $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-fadeInDown($duration: 0.5s, $delay: 0s) {
+  animation: fadeInDown $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-fadeInLeft($duration: 0.5s, $delay: 0s) {
+  animation: fadeInLeft $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-fadeInRight($duration: 0.5s, $delay: 0s) {
+  animation: fadeInRight $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-zoomIn($duration: 0.4s, $delay: 0s) {
+  animation: zoomIn $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-bounceIn($duration: 0.6s, $delay: 0s) {
+  animation: bounceIn $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-slideDown($duration: 0.3s, $delay: 0s) {
+  animation: slideDown $duration ease both;
+  animation-delay: $delay;
+}
+
+@mixin animate-spin($duration: 1s, $timing: linear, $iteration: infinite) {
+  animation: spin $duration $timing $iteration;
+}
+
+// ===== Stagger 工具 =====
+@mixin stagger-children($count, $base-delay: 0.06s) {
+  @for $i from 1 through $count {
+    & > :nth-child(#{$i}) {
+      animation-delay: ($i - 1) * $base-delay;
+    }
+  }
+}
+
+// ===== 实用类 =====
+.anim-fadeInUp { @include animate-fadeInUp; }
+.anim-fadeInDown { @include animate-fadeInDown; }
+.anim-fadeInLeft { @include animate-fadeInLeft; }
+.anim-fadeInRight { @include animate-fadeInRight; }
+.anim-zoomIn { @include animate-zoomIn; }
+.anim-bounceIn { @include animate-bounceIn; }
+.anim-slideDown { @include animate-slideDown; }
+
+.anim-delay-100 { animation-delay: 0.1s; }
+.anim-delay-200 { animation-delay: 0.2s; }
+.anim-delay-300 { animation-delay: 0.3s; }
+.anim-delay-400 { animation-delay: 0.4s; }
+.anim-delay-500 { animation-delay: 0.5s; }
+
+.anim-fill-both { animation-fill-mode: both; }

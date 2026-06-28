@@ -372,10 +372,17 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all $transition-fast;
+  transition: all $transition-base;
+
   &:hover {
-    background: $primary-50;
-    color: $primary;
+    background: linear-gradient(135deg, $primary-50, $primary);
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -421,14 +428,22 @@ onMounted(() => {
   margin: 0 0 $space-4;
   font-size: $font-size-sm;
   color: $text-secondary;
+  padding: $space-2 $space-3;
+  background: $bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+
   span {
     cursor: pointer;
-    transition: color $transition-fast;
+    transition: all $transition-base;
+
     &:hover {
       color: $primary;
+      transform: scale(1.05);
     }
     &.current {
       color: $primary;
+      font-weight: $font-weight-semibold;
       cursor: default;
     }
     &.sep {
@@ -442,6 +457,41 @@ onMounted(() => {
   background: $bg-card;
   border-radius: $radius-md;
   padding: $space-6;
+  box-shadow: $shadow-sm;
+}
+
+// ===== 按钮 =====
+.section-title {
+  margin: 0;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: 1px solid $primary;
+  background: transparent;
+  color: $primary;
+  border-radius: $radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    background: linear-gradient(135deg, $primary-50, $primary);
+    color: #fff;
+    border-color: $primary;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
 }
 
 .info-card {
@@ -450,6 +500,13 @@ onMounted(() => {
   box-shadow: $shadow-sm;
   padding: $space-5;
   margin-bottom: $space-4;
+  border: 1px solid $border-light;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    border-color: $primary-100;
+  }
 }
 
 .card-header {

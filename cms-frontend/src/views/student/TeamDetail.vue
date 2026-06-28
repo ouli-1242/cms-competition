@@ -330,10 +330,17 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all $transition-fast;
+  transition: all $transition-base;
+
   &:hover {
-    background: $primary-50;
-    color: $primary;
+    background: linear-gradient(135deg, $primary-50, $primary);
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -352,6 +359,12 @@ onMounted(() => {
   background: $bg-card;
   border-radius: $radius-full;
   box-shadow: $shadow-sm;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
 }
 
 .user-mini .avatar {

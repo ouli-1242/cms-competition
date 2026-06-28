@@ -818,18 +818,24 @@ onMounted(() => {
   height: 42px;
   padding: 0 $space-4;
   border: 1px solid $border-base;
-  background: $bg-card;
+  background: linear-gradient(135deg, $bg-card, #f8fafc);
   color: $primary;
   font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
   border-radius: $radius-base;
   cursor: pointer;
   white-space: nowrap;
-  transition: all $transition-fast;
+  transition: all $transition-base;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   &:hover:not(:disabled) {
-    background: $primary-50;
+    background: linear-gradient(135deg, $primary-50, $primary);
+    color: #fff;
     border-color: $primary;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(43, 108, 176, 0.2);
   }
+  &:active:not(:disabled) { transform: translateY(0) scale(0.97); }
   &:disabled {
     color: $text-disabled;
     cursor: not-allowed;
