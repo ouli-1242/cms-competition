@@ -46,7 +46,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Result<?> handleAll(Exception e) {
         log.error("系统异常", e);
-        String msg = e.getClass().getSimpleName() + ": " + e.getMessage();
-        return Result.error(500, msg);
+        return Result.error(500, "服务器内部错误");
     }
 }
