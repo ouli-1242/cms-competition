@@ -19,7 +19,8 @@ public class User {
     private String nickname;
     private String realName;
     private String role;          // VISITOR/STUDENT/TEACHER/ADMIN
-    private String college;       // 学院
+    @TableField("school")
+    private String college;       // 学院（数据库字段为 school）
     private String phone;
     private String email;
     private String avatar;
