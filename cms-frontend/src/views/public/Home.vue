@@ -13,6 +13,7 @@ import { getCompetitions, getActiveBanners, getActiveHot } from '@/api/public'
 import type { Competition } from '@/api/public'
 import { competitionStatusText, competitionStatusType } from '@/utils/status'
 import { coverStyle } from '@/utils/cover'
+import { extractIdFromUrl } from '@/utils/format'
 
 const router = useRouter()
 
